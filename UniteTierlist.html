@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokémon Unite Tier List</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      background-color: #111;
+      font-family: 'Roboto', sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .tier-list {
+      flex: 3;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .save-reset {
+      position: sticky;
+      top: 0;
+      background-color: #111;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 2px solid #222;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 15px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #444;
+    }
+
+    .character-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 10px;
+      overflow: hidden;
+      background-image: url('src/UniteDBMarker.png');
+      background-size: cover;
+      background-position: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      margin: 10px auto 0;
+      position: relative;
+    }
+
+    .character-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    .tier-controls {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .tier {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      background: #1c1c1c;
+      border-radius: 10px;
+      padding: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .tier-label {
+      width: 100px;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 5px;
+      padding: 5px;
+      margin-right: 10px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      word-break: break-word;
+      position: relative;
+    }
+
+    .color-picker {
+      margin-top: 5px;
+      display: none;
+      width: 80%;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .edit-icon {
+      display: none;
+      position: absolute;
+      left: -25px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .tier-content {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 5px;
+      min-height: 60px;
+      border: 2px dashed transparent;
+      transition: all 0.2s ease;
+    }
+
+    .tier-content.dragover {
+      border: 2px dashed #888;
+    }
+
+    .pokemon-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #222;
+      overflow: hidden;
+      cursor: grab;
+      transition: transform 0.2s;
+      flex: 0 0 auto;
+      position: static;
+      border: 3px solid transparent;
+      touch-action: none;
+    }
+
+    .pokemon-icon:hover {
+      transform: scale(1.1);
+    }
+
+    .pokemon-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    .attackers {
+      border-color: #f44336;
+    }
+
+    .allrounders {
+      border-color: #ff9800;
+    }
+
+    .defenders {
+      border-color: #2196f3;
+    }
+
+    .supporters {
+      border-color: #9c27b0;
+    }
+
+    .speedsters {
+      border-color: #4caf50;
+    }
+
+    .side-panel {
+      flex: 1;
+      background-color: #1a1a1a;
+      border-left: 3px solid #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      justify-items: center;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        height: auto;
+        overflow-y: auto;
+      }
+
+      .tier-list {
+        order: 1;
+        flex: none;
+        padding: 10px;
+      }
+
+      .side-panel {
+        order: 2;
+        flex: none;
+        border-left: none;
+        border-top: 3px solid #333;
+        padding: 10px;
+        margin-bottom: 90px;
+      }
+
+      .character-preview {
+        display: none;
+      }
+
+      .character-grid {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #1a1a1a;
+        border-top: 3px solid #333;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 10px;
+        padding: 10px;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+        z-index: 100;
+      }
+
+      .pokemon-icon {
+        width: 55px;
+        height: 55px;
+      }
+
+      .tier {
+        flex-direction: column;
+      }
+
+      .tier-label {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      .edit-icon {
+        display: block;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="tier-list" id="tierList">
+    <div class="save-reset">
+      <div class="button-group">
+        <button id="save">SAVE</button>
+        <button id="reset">RESET</button>
+      </div>
+    </div>
+
+    <div class="character-preview" id="preview">
+      <img src="" alt="">
+    </div>
+
+    <div class="tier-controls">
+      <button id="addTier">+ ADD TIER</button>
+      <button id="removeTier">- REMOVE TIER</button>
+    </div>
+
+    <div id="tiers-container">
+      <div class="tier">
+        <div class="tier-label" style="background-color: #ff5722;" contenteditable="true">S TIER
+          <input type="color" class="color-picker" value="#ff5722">
+          <span class="edit-icon">✏️</span>
+        </div>
+        <div class="tier-content"></div>
+      </div>
+      <div class="tier">
+        <div class="tier-label" style="background-color: #ffca28;" contenteditable="true">A TIER
+          <input type="color" class="color-picker" value="#ffca28">
+          <span class="edit-icon">✏️</span>
+        </div>
+        <div class="tier-content"></div>
+      </div>
+      <div class="tier">
+        <div class="tier-label" style="background-color: #8bc34a;" contenteditable="true">B TIER
+          <input type="color" class="color-picker" value="#8bc34a">
+          <span class="edit-icon">✏️</span>
+        </div>
+        <div class="tier-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <div class="character-grid" id="character-grid"></div>
+  </div>
+
+  <script>
+    const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'MewtwoY', 'Inteleon', 'Chandelure',
+      'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'
+    ];
+    const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
+      'Blaziken', 'Zacian', 'UrshifuSS', 'UrshifuRS', 'Scizor', 'Tyranitar', 'Buzzwole', 'Azumarill', 'Aegislash', 'Dragonite',
+      'Tsareena', 'Charizard', 'Lucario', 'Machamp', 'Garchomp', 'MewtwoX'
+    ];
+    const defenders = ['Ho-Oh', 'Umbreon', 'Lapras', 'Goodra', 'Trevenant', 'Greedent', 'Mamoswine', 'Blastoise', 'Snorlax', 'Crustle', 'Slowbro'];
+    const supporters = ['Latias', 'Alcremie', 'Psyduck', 'Comfey', 'Sableye', 'Clefable', 'Hoopa', 'Blissey', 'Eldegoss', 'Mr-Mime', 'Wigglytuff'];
+    const speedsters = ['Galarian-Rapidash', 'Darkrai', 'Meowscarada', 'Leafeon', 'Zoroark', 'Dodrio', 'Zeraora', 'Talonflame', 'Absol', 'Gengar'];
+    const categories = { attackers, allrounders, defenders, supporters, speedsters };
+
+    const grid = document.getElementById('character-grid');
+    const previewContainer = document.getElementById('preview');
+    const overlayImg = document.createElement('img');
+    overlayImg.id = 'pokemon-overlay';
+    overlayImg.style.position = 'absolute';
+    overlayImg.style.width = '55%';
+    overlayImg.style.height = 'auto';
+    overlayImg.style.objectFit = 'contain';
+    overlayImg.style.pointerEvents = 'none';
+    overlayImg.style.borderRadius = '10px';
+    previewContainer.appendChild(overlayImg);
+
+    function setupDragAndDrop() {
+      const tiers = document.querySelectorAll('.tier-content');
+      tiers.forEach(tier => {
+        tier.addEventListener('dragover', e => {
+          e.preventDefault();
+          tier.classList.add('dragover');
+        });
+        tier.addEventListener('dragleave', () => tier.classList.remove('dragover'));
+        tier.addEventListener('drop', e => {
+          e.preventDefault();
+          tier.classList.remove('dragover');
+          const dragging = document.querySelector('.dragging');
+          if (dragging) {
+            tier.appendChild(dragging);
+            showPokemonPreview(dragging.dataset.name);
+          }
+        });
+      });
+    }
+
+    Object.entries(categories).forEach(([role, names]) => {
+      names.forEach(name => {
+        const div = document.createElement('div');
+        div.className = `pokemon-icon ${role}`;
+        div.draggable = true;
+        div.dataset.name = name;
+        div.innerHTML = `<img src='Pokemon/roster-${name.toLowerCase()}.png' alt='${name}'>`;
+        div.addEventListener('dragstart', () => div.classList.add('dragging'));
+        div.addEventListener('dragend', () => div.classList.remove('dragging'));
+        div.addEventListener('click', () => showPokemonPreview(name));
+        grid.appendChild(div);
+      });
+    });
+
+    function showPokemonPreview(name) {
+      overlayImg.src = `Pokemon/roster-${name.toLowerCase()}.png`;
+      overlayImg.alt = name;
+    }
+
+    previewContainer.addEventListener('click', () => {
+      if (overlayImg.alt) {
+        window.open(`https://unite-db.com/pokemon/${overlayImg.alt.toLowerCase()}`, '_blank');
+      }
+    });
+
+    setupDragAndDrop();
+
+    // Mobile-friendly pointer-based drag (works in DevTools emulation too)
+    // This only handles touch pointer events and will not interfere with desktop drag logic.
+    if (window.PointerEvent) {
+      let pointerDrag = null;
+      let originalParent = null;
+      let ghost = null;
+      let activePointerId = null;
+
+      document.querySelectorAll('.pokemon-icon').forEach(icon => {
+        icon.addEventListener('pointerdown', function (e) {
+          if (e.pointerType !== 'touch') return; // ignore mouse/pen
+          e.preventDefault();
+
+          pointerDrag = icon;
+          originalParent = icon.parentElement;
+          activePointerId = e.pointerId;
+
+          // create ghost that follows the finger
+          ghost = icon.cloneNode(true);
+          ghost.style.position = 'fixed';
+          ghost.style.zIndex = '9999';
+          ghost.style.opacity = '0.92';
+          ghost.style.pointerEvents = 'none';
+          ghost.style.width = icon.offsetWidth + 'px';
+          ghost.style.height = icon.offsetHeight + 'px';
+          ghost.classList.add('mobile-ghost');
+          document.body.appendChild(ghost);
+
+          // place ghost under finger immediately
+          ghost.style.left = (e.clientX - ghost.offsetWidth / 2) + 'px';
+          ghost.style.top = (e.clientY - ghost.offsetHeight / 2) + 'px';
+
+          // add a visual dragging class on original (keeps desktop behaviour intact)
+          icon.classList.add('dragging');
+
+          // capture pointer so we keep getting events even if pointer leaves element
+          try {
+            icon.setPointerCapture(e.pointerId);
+          } catch (err) {
+            // some browsers might throw - safe to ignore
+          }
+        });
+
+        icon.addEventListener('pointermove', function (e) {
+          if (!pointerDrag || e.pointerType !== 'touch' || e.pointerId !== activePointerId) return;
+          e.preventDefault();
+          if (!ghost) return;
+          ghost.style.left = (e.clientX - ghost.offsetWidth / 2) + 'px';
+          ghost.style.top = (e.clientY - ghost.offsetHeight / 2) + 'px';
+
+          // highlight tier under finger
+          const tier = document.elementFromPoint(e.clientX, e.clientY)?.closest('.tier-content');
+          document.querySelectorAll('.tier-content').forEach(t => t.classList.remove('dragover'));
+          if (tier) tier.classList.add('dragover');
+        });
+
+        icon.addEventListener('pointerup', function (e) {
+          if (!pointerDrag || e.pointerType !== 'touch' || e.pointerId !== activePointerId) return;
+          e.preventDefault();
+
+          const tier = document.elementFromPoint(e.clientX, e.clientY)?.closest('.tier-content');
+          document.querySelectorAll('.tier-content').forEach(t => t.classList.remove('dragover'));
+
+          if (tier) {
+            tier.appendChild(pointerDrag);
+            // keep existing behavior: update preview
+            showPokemonPreview(pointerDrag.dataset.name);
+          } else {
+            // put it back
+            originalParent.appendChild(pointerDrag);
+          }
+
+          // cleanup
+          if (ghost) {
+            ghost.remove();
+            ghost = null;
+          }
+          pointerDrag.classList.remove('dragging');
+          try { icon.releasePointerCapture(e.pointerId); } catch (err) {}
+          pointerDrag = null;
+          originalParent = null;
+          activePointerId = null;
+        });
+
+        icon.addEventListener('pointercancel', function (e) {
+          if (e.pointerType !== 'touch' || e.pointerId !== activePointerId) return;
+          if (ghost) { ghost.remove(); ghost = null; }
+          if (pointerDrag) {
+            pointerDrag.classList.remove('dragging');
+            if (originalParent) originalParent.appendChild(pointerDrag);
+          }
+          pointerDrag = null;
+          originalParent = null;
+          activePointerId = null;
+        });
+      });
+    }
+
+    // RESET
+    document.getElementById('reset').addEventListener('click', () => {
+      document.querySelectorAll('.tier-content .pokemon-icon').forEach(icon => grid.appendChild(icon));
+      overlayImg.src = "";
+      overlayImg.alt = "";
+    });
+
+    // SAVE
+    document.getElementById('save').addEventListener('click', () => {
+      html2canvas(document.getElementById('tierList')).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'unite-tier-list.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    });
+
+    // ADD / REMOVE TIER
+    document.getElementById('addTier').addEventListener('click', () => {
+      const tier = document.createElement('div');
+      tier.className = 'tier';
+      const color = '#' + Math.floor(Math.random() * 16777215).toString(16);
+      tier.innerHTML = `
+      <div class="tier-label" style="background-color:${color};" contenteditable="true">
+        NEW TIER
+        <input type="color" class="color-picker" value="${color}">
+        <span class="edit-icon">✏️</span>
+      </div>
+      <div class="tier-content"></div>`;
+      document.getElementById('tiers-container').appendChild(tier);
+      setupDragAndDrop();
+      setupColorPickers();
+    });
+
+    document.getElementById('removeTier').addEventListener('click', () => {
+      const container = document.getElementById('tiers-container');
+      const last = container.lastElementChild;
+      if (last) container.removeChild(last);
+    });
+
+    function setupColorPickers() {
+      document.querySelectorAll('.tier-label').forEach(label => {
+        const picker = label.querySelector('.color-picker');
+        const pencil = label.querySelector('.edit-icon');
+        picker.addEventListener('mousedown', e => e.stopPropagation());
+        picker.addEventListener('click', e => e.stopPropagation());
+        label.addEventListener('dblclick', e => {
+          e.stopPropagation();
+          picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
+        });
+        picker.addEventListener('input', e => label.style.backgroundColor = e.target.value);
+        document.addEventListener('click', e => {
+          if (!label.contains(e.target)) picker.style.display = 'none';
+        });
+        if (pencil) {
+          pencil.addEventListener('click', e => {
+            e.stopPropagation();
+            picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
+          });
+        }
+      });
+    }
+
+    setupColorPickers();
+  </script>
+</body>
+</html>
