@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon Unite Tier List</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background-color: #111;
+      font-family: 'Roboto', sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+    }
+
+    .tier-list {
+      flex: 3;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .tier {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      background: #1c1c1c;
+      border-radius: 10px;
+      padding: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .tier-label {
+      width: 80px;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 5px;
+      padding: 5px;
+      margin-right: 10px;
+    }
+
+    .S {
+      background-color: #ff5722;
+    }
+
+    .A {
+      background-color: #ffca28;
+    }
+
+    .B {
+      background-color: #8bc34a;
+    }
+
+    .C {
+      background-color: #03a9f4;
+    }
+
+    .D {
+      background-color: #9c27b0;
+    }
+
+    .E {
+      background-color: #e91e63;
+    }
+
+    .tier-content {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 5px;
+      min-height: 60px;
+      border: 2px dashed transparent;
+      transition: all 0.2s ease;
+    }
+
+    .tier-content.dragover {
+      border: 2px dashed #888;
+    }
+
+    .pokemon-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #222;
+      overflow: hidden;
+      cursor: grab;
+      transition: transform 0.2s, width 0.2s, height 0.2s;
+      flex: 0 0 auto;
+    }
+
+    .pokemon-icon:hover {
+      transform: scale(1.1);
+    }
+
+    .pokemon-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      /* Disable clicks on icons */
+    }
+
+    .side-panel {
+      flex: 1;
+      background-color: #1a1a1a;
+      border-left: 3px solid #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .character-preview {
+      flex: 1;
+      height: 200px;
+      /* or adjust as needed */
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      margin-bottom: 20px;
+      background-image: url('src/UniteDBMarker.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      /* vertical centering */
+      justify-content: flex-end;
+      /* move image to the right */
+      padding-right: -10px;
+      /* more space from the edge */
+    }
+
+    .character-preview img {
+      width: 55%;
+      /* smaller than before */
+      height: auto;
+      object-fit: contain;
+      border-radius: 10px;
+      pointer-events: none;
+      /* keep icons clickable separately */
+    }
+
+
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      justify-items: center;
+    }
+
+    .save-reset {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 15px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #444;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="tier-list" id="tierList">
+    <div class="save-reset">
+      <button id="save">SAVE</button>
+      <button id="reset">RESET</button>
+    </div>
+
+    <div class="tier">
+      <div class="tier-label S">S TIER</div>
+      <div class="tier-content" id="S"></div>
+    </div>
+    <div class="tier">
+      <div class="tier-label A">A TIER</div>
+      <div class="tier-content" id="A"></div>
+    </div>
+    <div class="tier">
+      <div class="tier-label B">B TIER</div>
+      <div class="tier-content" id="B"></div>
+    </div>
+    <div class="tier">
+      <div class="tier-label C">C TIER</div>
+      <div class="tier-content" id="C"></div>
+    </div>
+    <div class="tier">
+      <div class="tier-label D">D TIER</div>
+      <div class="tier-content" id="D"></div>
+    </div>
+    <div class="tier">
+      <div class="tier-label E">E TIER</div>
+      <div class="tier-content" id="E"></div>
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <div class="side-panel-top">
+      <div class="character-preview" id="preview">
+        <img src="https://via.placeholder.com/300x150?text=Click+Pokemon" alt="Preview">
+      </div>
+
+      <div class="character-grid" id="character-grid"></div>
+    </div>
+  </div>
+
+  <script>
+    const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'MewtwoY', 'Inteleon', 'Chandelure',
+      'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'
+    ]
+    const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
+      'Blaziken', 'Zacian', 'UrshifuSS', 'UrshifuRS', 'Scizor', 'Tyranitar', 'Buzzwole', 'Azumarill', 'Aegislash', 'Dragonite', 
+      'Tsareena', 'Charizard', 'Lucario', 'Machamp', 'Garchomp', 'MewtwoX'
+    ]
+    const defenders = ['Ho-Oh', 'Umbreon', 'Lapras', 'Goodra', 'Trevenant', 'Greedent', 'Mamoswine', 'Blastoise', 'Snorlax', 'Crustle', 'Slowbro']
+    const supporters = [ 'Latias', 'Alcremie', 'Psyduck', 'Comfey', 'Sableye', 'Clefable', 'Hoopa', 'Blissey', 'Eldegoss', 'Mr-Mime', 'Wigglytuff']
+    const speedsters = ['Galarian-Rapidash', 'Darkrai', 'Meowscarada', 'Leafeon', 'Zoroark', 'Dodrio', 'Zeraora', 'Talonflame', 'Absol', 'Gengar']
+    
+    const characters = [ ...attackers, ...defenders, ...allrounders, ...supporters, ...speedsters];
+
+    const grid = document.getElementById('character-grid');
+    const tiers = document.querySelectorAll('.tier-content');
+    const previewContainer = document.getElementById('preview');
+    const previewImg = previewContainer.querySelector('img');
+
+    // Create Pokémon icons in side panel (draggable only)
+    characters.forEach(name => {
+      const div = document.createElement('div');
+      div.className = 'pokemon-icon';
+      div.draggable = true;
+      div.dataset.name = name;
+      div.innerHTML = `<img src='Pokemon/roster-${name.toLowerCase()}.png' alt='${name}'>`;
+
+      div.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', name);
+        e.dataTransfer.effectAllowed = 'move';
+        div.classList.add('dragging');
+      });
+
+      // Update preview when icon is clicked
+      div.addEventListener('click', () => {
+        previewImg.src = `Pokemon/roster-${name.toLowerCase()}.png`;
+        previewImg.alt = name;
+      });
+
+
+      div.addEventListener('dragend', () => div.classList.remove('dragging'));
+      grid.appendChild(div);
+    });
+
+    // Click on the preview opens Unite DB
+    previewContainer.addEventListener('click', () => {
+      if (previewImg.alt && previewImg.alt !== "Preview") {
+        window.open(`https://unite-db.com/pokemon/${previewImg.alt.toLowerCase()}`, '_blank');
+      }
+    });
+
+    // Drag-and-drop for tiers
+    tiers.forEach(tier => {
+      tier.addEventListener('dragover', e => {
+        e.preventDefault();
+        tier.classList.add('dragover');
+        const afterElement = getDragAfterElement(tier, e.clientX, e.clientY);
+        const dragging = document.querySelector('.dragging');
+        if (afterElement == null) {
+          tier.appendChild(dragging);
+        } else {
+          tier.insertBefore(dragging, afterElement);
+        }
+      });
+      tier.addEventListener('dragleave', () => tier.classList.remove('dragover'));
+      tier.addEventListener('drop', e => {
+        e.preventDefault();
+        tier.classList.remove('dragover');
+
+        // Update preview when Pokémon is dropped
+        const dragging = document.querySelector('.dragging');
+        if (dragging) {
+          previewImg.src = `Pokemon/roster-${dragging.dataset.name.toLowerCase()}.png`;
+          previewImg.alt = dragging.dataset.name;
+        }
+      });
+    });
+
+    function getDragAfterElement(container, x, y) {
+      const draggableElements = [...container.querySelectorAll('.pokemon-icon:not(.dragging)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // Reset button
+    document.getElementById('reset').addEventListener('click', () => {
+      document.querySelectorAll('.tier-content .pokemon-icon').forEach(icon => grid.appendChild(icon));
+      previewImg.src = "https://via.placeholder.com/300x150?text=Click+Pokemon";
+      previewImg.alt = "Preview";
+    });
+
+    // Save as image
+    document.getElementById('save').addEventListener('click', () => {
+      html2canvas(document.getElementById('tierList')).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'unite-tier-list.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    });
+  </script>
+</body>
+
+</html>

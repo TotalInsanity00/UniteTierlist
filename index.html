@@ -332,11 +332,27 @@
     });
     // SAVE
     document.getElementById('save').addEventListener('click', () => {
-      html2canvas(document.getElementById('tierList')).then(canvas => {
+      const saveReset = document.querySelector('.save-reset');
+      const tierControls = document.querySelector('.tier-controls');
+
+      // Temporarily hide buttons
+      saveReset.style.display = 'none';
+      tierControls.style.display = 'none';
+
+      // Capture tier list
+      html2canvas(document.getElementById('tierList'), {
+        backgroundColor: '#111', // keep dark theme (or null for transparent)
+        scale: 2,
+        useCORS: true
+      }).then(canvas => {
         const link = document.createElement('a');
         link.download = 'unite-tier-list.png';
-        link.href = canvas.toDataURL();
+        link.href = canvas.toDataURL('image/png');
         link.click();
+
+        // Restore buttons
+        saveReset.style.display = 'flex';
+        tierControls.style.display = 'flex';
       });
     });
 
