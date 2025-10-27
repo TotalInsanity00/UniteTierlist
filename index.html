@@ -7,7 +7,8 @@
   <link rel="icon" type="image/png" href="src/Icon.png">
   <title>Pokémon Unite Tier List</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/src/dom-to-image.min.js"></script>
+
 
   <style>
     body {
@@ -572,44 +573,39 @@
 
   document.getElementById("save").addEventListener("click", () => {
     const tierList = document.querySelector(".tier-list");
+
+    // --- Temporary styling for crispness (optional but recommended) ---
     const images = tierList.querySelectorAll(".pokemon-icon img");
-
-    // Apply the pixelated rendering hint directly without storing/restoring transform
     images.forEach((img) => {
-      img.style.imageRendering = "pixelated"; // Keeps them crisp
+      img.style.imageRendering = "pixelated";
     });
 
-    // Wait for images to load completely
-    const loadPromises = Array.from(images).map(img => {
-      if (img.complete) return Promise.resolve();
-      return new Promise(resolve => {
-        img.onload = resolve;
-        img.onerror = resolve;
-      });
-    });
-
-    Promise.all(loadPromises).then(() => {
-      html2canvas(tierList, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#111", // solid background looks cleaner than transparent
-      }).then(canvas => {
-        // Restore image rendering after capture
+    // --- Use dom-to-image to convert the tier list to a PNG data URL ---
+    domtoimage.toPng(tierList, {
+      bgcolor: '#111', // Matches your body background color
+      quality: 1.0,
+      // The width/height settings here can help force a high-resolution render
+      width: tierList.scrollWidth,
+      height: tierList.scrollHeight,
+    })
+      .then(function (dataUrl) {
+        // --- Restore original styling after capture ---
         images.forEach((img) => {
           img.style.imageRendering = "auto";
         });
 
-        // Save PNG
+        // --- Save the image ---
         const link = document.createElement("a");
         link.download = "unite-tier-list.png";
-        link.href = canvas.toDataURL("image/png");
+        link.href = dataUrl;
         link.click();
-      }).catch(err => {
-        console.error("Error saving tier list:", err);
-        alert("Something went wrong while saving.");
+      })
+      .catch(function (error) {
+        console.error('oops, something went wrong!', error);
+        alert("Could not save the image. Check the console for details.");
       });
-    });
   });
+
 
   document.getElementById('addTier').addEventListener('click', () => {
     const container = document.getElementById('tiers-container');
