@@ -490,102 +490,102 @@
     "pikachu": {
       "icon": {
         "scale": 1.5,
-        "xOffset": 10 ,
+        "xOffset": 10,
         "yOffset": 5
       },
     },
-    "mewtwox":{
+    "mewtwox": {
       "icon": {
         "scale": 3.0,
         "xOffset": 4,
         "yOffset": 20
       }
     },
-    "mewtwoy":{
+    "mewtwoy": {
       "icon": {
         "scale": 3.0,
         "xOffset": 4,
         "yOffset": 20
       }
     },
-    "dragonite":{
+    "dragonite": {
       "icon": {
         "scale": 1.7,
         "xOffset": 12,
         "yOffset": -8
       }
     },
-    "mr-mime":{
+    "mr-mime": {
       "icon": {
         "scale": 1.8,
         "xOffset": 0,
         "yOffset": 10
       }
     },
-    "snorlax":{
+    "snorlax": {
       "icon": {
         "scale": 1.4,
         "xOffset": 0,
         "yOffset": 0
       }
     },
-    "urshifurs":{
+    "urshifurs": {
       "icon": {
         "scale": 2.0,
         "xOffset": -6,
         "yOffset": 8
       }
     },
-    "urshifuss":{
+    "urshifuss": {
       "icon": {
         "scale": 2.0,
         "xOffset": 0,
         "yOffset": 15
       }
     },
-    "blissey":{
+    "blissey": {
       "icon": {
         "scale": 1.4,
         "xOffset": 2,
         "yOffset": 10
       }
     },
-    "espeon":{
+    "espeon": {
       "icon": {
         "scale": 1.6,
         "xOffset": -4,
         "yOffset": 10
       }
     },
-    "mew":{
+    "mew": {
       "icon": {
         "scale": 1.4,
         "xOffset": -4,
         "yOffset": 8
       }
     },
-    "scizor":{
+    "scizor": {
       "icon": {
         "scale": 1.6,
         "xOffset": 4,
         "yOffset": 0
       }
     },
-    "scyther":{
+    "scyther": {
       "icon": {
         "scale": 2.4,
         "xOffset": 12,
         "yOffset": -4
       }
     },
-    "tyranitar":{
+    "tyranitar": {
       "icon": {
         "scale": 1.8,
         "xOffset": -8,
         "yOffset": 14
       }
     },
-    "azumarill":{
+    "azumarill": {
       "icon": {
         "scale": 1.3,
         "xOffset": 4,
@@ -732,24 +732,41 @@
     selectedPokemon = null;
   });
 
-  document.getElementById("save").addEventListener("click", () => {
+  document.getElementById("save").addEventListener("click", async () => {
     const tierList = document.querySelector(".tier-list");
+    const scale = window.devicePixelRatio || 2; // Use screen DPI for best results
 
-    // --- Temporary styling for crispness (optional but recommended) ---
+    // Wait for fonts & images to load (helps prevent missing icons or blur)
+    await document.fonts.ready;
+    await Promise.all(
+      Array.from(document.images)
+        .filter(img => !img.complete)
+        .map(img => new Promise(resolve => (img.onload = img.onerror = resolve)))
+    );
+
+    // --- Temporary styling for crispness ---
     const images = tierList.querySelectorAll(".pokemon-icon img");
     images.forEach((img) => {
       img.style.imageRendering = "pixelated";
     });
 
+    // Get element dimensions
+    const rect = tierList.getBoundingClientRect();
+
     // --- Use dom-to-image to convert the tier list to a PNG data URL ---
     domtoimage.toPng(tierList, {
-      bgcolor: '#111', // Matches your body background color
+      bgcolor: "#111", // Matches your background
       quality: 1.0,
-      // The width/height settings here can help force a high-resolution render
-      width: tierList.scrollWidth,
-      height: tierList.scrollHeight,
+      width: rect.width * scale,
+      height: rect.height * scale,
+      style: {
+        transform: `scale(${scale})`,
+        transformOrigin: "top left",
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+      },
     })
-      .then(function (dataUrl) {
+      .then((dataUrl) => {
         // --- Restore original styling after capture ---
         images.forEach((img) => {
           img.style.imageRendering = "auto";
@@ -761,8 +778,8 @@
         link.href = dataUrl;
         link.click();
       })
-      .catch(function (error) {
-        console.error('oops, something went wrong!', error);
+      .catch((error) => {
+        console.error("oops, something went wrong!", error);
         alert("Could not save the image. Check the console for details.");
       });
   });
