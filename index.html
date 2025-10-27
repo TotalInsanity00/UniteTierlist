@@ -287,6 +287,12 @@
         display: flex;
       }
     }
+
+    /* Mobile tap-to-swap highlight */
+    .swap-selected {
+      outline: 3px solid #ffd700;
+      transform: scale(1.1);
+    }
   </style>
 
 </head>
@@ -414,19 +420,44 @@
   // --- Drag + Touch placement ---
   function setupDragAndDrop() {
     const tiers = document.querySelectorAll('.tier-content');
+
     tiers.forEach(tier => {
-      tier.addEventListener('dragover', e => { e.preventDefault(); tier.classList.add('dragover'); });
-      tier.addEventListener('dragleave', () => tier.classList.remove('dragover'));
-      tier.addEventListener('drop', e => {
-        e.preventDefault(); tier.classList.remove('dragover');
-        const dragging = document.querySelector('.dragging');
-        if (dragging) {
+      tier.addEventListener('dragover', e => {
+        e.preventDefault();
+        tier.classList.add('dragover');
+
+        const dragging = document.querySelector('.dragging, .dragging-icon');
+        if (!dragging) return;
+
+        const afterElement = getDragAfterElement(tier, e.clientX);
+        if (afterElement == null) {
           tier.appendChild(dragging);
+        } else {
+          tier.insertBefore(dragging, afterElement);
+        }
+      });
+
+      tier.addEventListener('dragleave', () => tier.classList.remove('dragover'));
+
+      tier.addEventListener('drop', e => {
+        e.preventDefault();
+        tier.classList.remove('dragover');
+        const dragging = document.querySelector('.dragging, .dragging-icon');
+        if (dragging) {
+          const afterElement = getDragAfterElement(tier, e.clientX);
+          if (afterElement == null) {
+            tier.appendChild(dragging);
+          } else {
+            tier.insertBefore(dragging, afterElement);
+          }
+
           previewImg.src = `./pokemon/roster-${dragging.dataset.name.toLowerCase()}.png`;
           previewImg.alt = dragging.dataset.name;
         }
+        setupIconReordering(); // keep reordering active
       });
-      // --- mobile tap placement ---
+
+      // --- Mobile tap-to-place support ---
       tier.addEventListener('click', e => {
         if (selectedPokemon) {
           tier.appendChild(selectedPokemon);
@@ -434,10 +465,12 @@
           previewImg.alt = selectedPokemon.dataset.name;
           selectedPokemon.classList.remove('selected-touch');
           selectedPokemon = null;
+          setupIconReordering();
         }
       });
     });
   }
+
 
   // --- Generate Pokémon icons ---
   Object.entries(categories).forEach(([role, names]) => {
@@ -543,11 +576,22 @@
     setupMobilePencils(); // ensure new tiers get pencil on mobile
   });
 
+  // --- Remove Tier (fixed so characters return to grid) ---
   document.getElementById('removeTier').addEventListener('click', () => {
     const container = document.getElementById('tiers-container');
     const last = container.lastElementChild;
-    if (last) container.removeChild(last);
+    const grid = document.getElementById('character-grid');
+
+    if (last) {
+      // Move all Pokémon back to the grid before removing the tier
+      const icons = last.querySelectorAll('.pokemon-icon');
+      icons.forEach(icon => grid.appendChild(icon));
+
+      // Now remove the tier
+      container.removeChild(last);
+    }
   });
+
 
   // --- Color picker + pencil toggle ---
   function setupColorPickers() {
@@ -620,6 +664,157 @@
   function isTouchDevice() {
     return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   }
+
+  // --- Enable tier reordering on desktop ---
+  function setupTierReordering() {
+    const tiersContainer = document.getElementById('tiers-container');
+    const tiers = tiersContainer.querySelectorAll('.tier');
+
+    tiers.forEach(tier => {
+      tier.draggable = true;
+
+      tier.addEventListener('dragstart', e => {
+        if (window.innerWidth <= 768) return; // disable on mobile
+        e.dataTransfer.effectAllowed = 'move';
+        tier.classList.add('dragging-tier');
+      });
+
+      tier.addEventListener('dragend', () => {
+        tier.classList.remove('dragging-tier');
+      });
+
+      tier.addEventListener('dragover', e => {
+        if (window.innerWidth <= 768) return;
+        e.preventDefault();
+        const dragging = document.querySelector('.dragging-tier');
+        if (!dragging || dragging === tier) return;
+
+        const rect = tier.getBoundingClientRect();
+        const offset = e.clientY - rect.top;
+        const halfway = rect.height / 2;
+
+        // Move dragging tier before or after hovered tier depending on mouse position
+        if (offset < halfway) {
+          tiersContainer.insertBefore(dragging, tier);
+        } else {
+          tiersContainer.insertBefore(dragging, tier.nextSibling);
+        }
+      });
+    });
+  }
+
+  // run once now and again after adding new tiers
+  setupTierReordering();
+
+  // also run again when a new tier is added
+  const originalAddTier = document.getElementById('addTier').onclick;
+  document.getElementById('addTier').onclick = () => {
+    originalAddTier?.();
+    setupTierReordering();
+  };
+
+  // --- Enable Pokémon reordering within tiers ---
+  function setupIconReordering() {
+    const tiers = document.querySelectorAll('.tier-content');
+
+    tiers.forEach(tier => {
+      tier.querySelectorAll('.pokemon-icon').forEach(icon => {
+        icon.draggable = true;
+
+        icon.addEventListener('dragstart', e => {
+          e.dataTransfer.effectAllowed = 'move';
+          icon.classList.add('dragging-icon');
+        });
+
+        icon.addEventListener('dragend', () => {
+          icon.classList.remove('dragging-icon');
+        });
+      });
+
+      tier.addEventListener('dragover', e => {
+        e.preventDefault();
+        const dragging = document.querySelector('.dragging-icon');
+        if (!dragging) return;
+
+        const afterElement = getDragAfterElement(tier, e.clientX);
+        if (afterElement == null) {
+          tier.appendChild(dragging);
+        } else {
+          tier.insertBefore(dragging, afterElement);
+        }
+      });
+    });
+  }
+
+  function getDragAfterElement(container, x) {
+    const draggableElements = [...container.querySelectorAll('.pokemon-icon:not(.dragging-icon)')];
+
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = x - box.left - box.width / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+
+  // run initially and after new tiers are added
+  setupIconReordering();
+
+  // reapply when new Pokémon are dropped or tiers added
+  document.addEventListener('drop', () => setupIconReordering());
+
+  function setupMobileSwap() {
+    if (!isTouchDevice()) return; // only on mobile
+
+    let firstSelected = null;
+
+    document.querySelectorAll('.pokemon-icon').forEach(icon => {
+      icon.addEventListener('click', e => {
+        e.stopPropagation();
+
+        // first selection
+        if (!firstSelected) {
+          firstSelected = icon;
+          icon.classList.add('swap-selected');
+          return;
+        }
+
+        // second selection -> swap
+        if (firstSelected !== icon) {
+          const firstParent = firstSelected.parentNode;
+          const secondParent = icon.parentNode;
+
+          const firstNext = firstSelected.nextSibling === icon ? icon.nextSibling : firstSelected.nextSibling;
+
+          // Swap logic
+          secondParent.insertBefore(firstSelected, icon);
+          if (firstNext) {
+            firstParent.insertBefore(icon, firstNext);
+          } else {
+            firstParent.appendChild(icon);
+          }
+
+          // cleanup
+          firstSelected.classList.remove('swap-selected');
+          firstSelected = null;
+        }
+      });
+    });
+
+    // tap anywhere else clears selection
+    document.body.addEventListener('click', e => {
+      if (firstSelected && !e.target.classList.contains('pokemon-icon')) {
+        firstSelected.classList.remove('swap-selected');
+        firstSelected = null;
+      }
+    });
+  }
+
+  setupMobileSwap();
+
 </script>
 
 
