@@ -572,10 +572,18 @@
   });
 
   document.getElementById("save").addEventListener("click", () => {
-    const tierList = document.querySelector(".tier-list"); // adjust selector if needed
+    const tierList = document.querySelector(".tier-list");
 
-    // Ensure all Pokémon icons are fully loaded before capturing
-    const images = tierList.querySelectorAll("img");
+    // Store original transform values
+    const images = tierList.querySelectorAll(".pokemon-icon img");
+    const originalTransforms = [];
+    images.forEach((img) => {
+      originalTransforms.push(img.style.transform);
+      img.style.transform = "none";
+      img.style.imageRendering = "pixelated"; // keeps them crisp
+    });
+
+    // Wait for images to load completely
     const loadPromises = Array.from(images).map(img => {
       if (img.complete) return Promise.resolve();
       return new Promise(resolve => {
@@ -586,16 +594,17 @@
 
     Promise.all(loadPromises).then(() => {
       html2canvas(tierList, {
-        scale: 2, // improves sharpness
+        scale: 2,
         useCORS: true,
-        backgroundColor: null,
-        onclone: (clonedDoc) => {
-          clonedDoc.querySelectorAll("img").forEach(img => {
-            img.style.imageRendering = "auto";
-            img.style.transform = "none";
-          });
-        }
+        backgroundColor: "#111", // solid background looks cleaner than transparent
       }).then(canvas => {
+        // Restore original transforms
+        images.forEach((img, i) => {
+          img.style.transform = originalTransforms[i];
+          img.style.imageRendering = "auto";
+        });
+
+        // Save PNG
         const link = document.createElement("a");
         link.download = "unite-tier-list.png";
         link.href = canvas.toDataURL("image/png");
