@@ -612,13 +612,6 @@
       }
     });
 
-    clone.querySelectorAll('.pokemon-icon').forEach(icon => {
-      const rect = icon.getBoundingClientRect();
-      icon.style.width = rect.width + 'px';
-      icon.style.height = rect.height + 'px';
-      icon.style.flex = '0 0 auto';
-    });
-
     // ✅ Preserve flex layout to avoid squishing
     clone.querySelectorAll('.tier-content').forEach(el => {
       const rect = el.getBoundingClientRect();
