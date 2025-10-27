@@ -571,50 +571,41 @@
     selectedPokemon = null;
   });
 
-  async function saveTierList() {
-    const tierList = document.querySelector(".tier-list");
+  document.getElementById("save").addEventListener("click", () => {
+    const tierList = document.querySelector(".tier-list"); // adjust selector if needed
 
-    // Wait for all images to load fully before capture
+    // Ensure all Pokémon icons are fully loaded before capturing
     const images = tierList.querySelectorAll("img");
-    await Promise.all(
-      Array.from(images).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-      })
-    );
-
-    // Temporarily remove transforms that can distort the result
-    const originalTransforms = [];
-    images.forEach(img => {
-      originalTransforms.push(img.style.transform);
-      img.style.transform = "none";
-      img.style.imageRendering = "auto";
+    const loadPromises = Array.from(images).map(img => {
+      if (img.complete) return Promise.resolve();
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
     });
 
-    // Take high-resolution capture (scale 2 = double resolution)
-    const canvas = await html2canvas(tierList, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: null,
-      scrollX: 0,
-      scrollY: -window.scrollY,
+    Promise.all(loadPromises).then(() => {
+      html2canvas(tierList, {
+        scale: 2, // improves sharpness
+        useCORS: true,
+        backgroundColor: null,
+        onclone: (clonedDoc) => {
+          clonedDoc.querySelectorAll("img").forEach(img => {
+            img.style.imageRendering = "auto";
+            img.style.transform = "none";
+          });
+        }
+      }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "unite-tier-list.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }).catch(err => {
+        console.error("Error saving tier list:", err);
+        alert("Something went wrong while saving.");
+      });
     });
-
-    // Restore the transforms
-    images.forEach((img, i) => {
-      img.style.transform = originalTransforms[i];
-    });
-
-    // Save as PNG
-    const link = document.createElement("a");
-    link.download = "unite-tier-list.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  }
+  });
 
 
 
