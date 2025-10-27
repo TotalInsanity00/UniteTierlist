@@ -578,14 +578,14 @@
     const pencils = document.querySelectorAll('.edit-icon');
     const isMobile = window.innerWidth <= 768;
 
-    // hide controls
+    // Hide controls
     saveReset.style.display = 'none';
     tierControls.style.display = 'none';
     if (isMobile) pencils.forEach(p => (p.style.visibility = 'hidden'));
 
     const tierList = document.getElementById('tierList');
 
-    // clone
+    // Clone off-screen
     const clone = tierList.cloneNode(true);
     clone.id = 'tierListClone';
     clone.style.position = 'absolute';
@@ -595,34 +595,33 @@
     clone.style.background = '#111';
     document.body.appendChild(clone);
 
-    // force layout
+    // Force layout
     void clone.offsetHeight;
 
-    // copy Pokémon icons styles and src from original
+    // Fix tier-content and icons
+    clone.querySelectorAll('.tier-content').forEach(el => {
+      const rect = el.getBoundingClientRect();
+      el.style.width = rect.width + 'px';
+      el.style.height = rect.height + 'px';
+      el.style.flexWrap = 'nowrap';       // temporarily prevent wrapping
+      el.style.alignItems = 'flex-start';
+      el.style.justifyContent = 'flex-start';
+    });
+
     const originalIcons = tierList.querySelectorAll('.pokemon-icon');
     const cloneIcons = clone.querySelectorAll('.pokemon-icon');
 
     cloneIcons.forEach((icon, i) => {
       const orig = originalIcons[i];
-      icon.innerHTML = orig.innerHTML; // copy img + transform
-      const origStyle = getComputedStyle(orig);
-      icon.style.width = origStyle.width;
-      icon.style.height = origStyle.height;
+      const rect = orig.getBoundingClientRect();
+
+      icon.innerHTML = orig.innerHTML;      // copy img + transform
+      icon.style.width = rect.width + 'px';
+      icon.style.height = rect.height + 'px';
       icon.style.flex = '0 0 auto';
     });
 
-    // freeze tier-content dimensions
-    clone.querySelectorAll('.tier-content').forEach(el => {
-      const style = getComputedStyle(el);
-      el.style.width = style.width;
-      el.style.height = style.height;
-      el.style.display = 'flex';
-      el.style.flexWrap = 'wrap';
-      el.style.alignItems = 'flex-start';
-      el.style.justifyContent = 'flex-start';
-    });
-
-    // html2canvas
+    // Render with html2canvas
     const canvas = await html2canvas(clone, {
       backgroundColor: '#111',
       scale: 2,
@@ -633,18 +632,21 @@
       scrollY: 0
     });
 
-    // cleanup
+    // Clean up
     document.body.removeChild(clone);
     saveReset.style.display = 'flex';
     tierControls.style.display = 'flex';
     if (isMobile) pencils.forEach(p => (p.style.visibility = 'visible'));
 
-    // download
+    // Download
     const link = document.createElement('a');
     link.download = 'unite-tier-list.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   });
+
+
+
 
   document.getElementById('addTier').addEventListener('click', () => {
     const container = document.getElementById('tiers-container');
