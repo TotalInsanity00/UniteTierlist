@@ -603,22 +603,23 @@
       const rect = el.getBoundingClientRect();
       el.style.width = rect.width + 'px';
       el.style.height = rect.height + 'px';
-      el.style.flexWrap = 'nowrap';       // temporarily prevent wrapping
+      el.style.flexWrap = 'wrap';
       el.style.alignItems = 'flex-start';
       el.style.justifyContent = 'flex-start';
     });
 
-    const originalIcons = tierList.querySelectorAll('.pokemon-icon');
-    const cloneIcons = clone.querySelectorAll('.pokemon-icon');
+    // ✅ NEW FIX: Preserve transform scaling exactly
+    const originalIcons = tierList.querySelectorAll('.pokemon-icon img');
+    const cloneIcons = clone.querySelectorAll('.pokemon-icon img');
 
-    cloneIcons.forEach((icon, i) => {
+    cloneIcons.forEach((img, i) => {
       const orig = originalIcons[i];
-      const rect = orig.getBoundingClientRect();
-
-      icon.innerHTML = orig.innerHTML;      // copy img + transform
-      icon.style.width = rect.width + 'px';
-      icon.style.height = rect.height + 'px';
-      icon.style.flex = '0 0 auto';
+      if (!orig) return;
+      const computed = window.getComputedStyle(orig);
+      img.style.transform = computed.transform; // keep scale/translate
+      img.style.objectFit = computed.objectFit;
+      img.style.width = computed.width;
+      img.style.height = computed.height;
     });
 
     // Render with html2canvas
@@ -644,6 +645,7 @@
     link.href = canvas.toDataURL('image/png');
     link.click();
   });
+
 
 
 
