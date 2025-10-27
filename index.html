@@ -571,80 +571,50 @@
     selectedPokemon = null;
   });
 
-  // --- SAVE FULL TIER LIST (pixel-perfect) ---
-  document.getElementById('save').addEventListener('click', async () => {
-    const saveReset = document.querySelector('.save-reset');
-    const tierControls = document.querySelector('.tier-controls');
-    const pencils = document.querySelectorAll('.edit-icon');
-    const isMobile = window.innerWidth <= 768;
+  async function saveTierList() {
+    const tierList = document.querySelector(".tier-list");
 
-    // Hide controls
-    saveReset.style.display = 'none';
-    tierControls.style.display = 'none';
-    if (isMobile) pencils.forEach(p => (p.style.visibility = 'hidden'));
+    // Wait for all images to load fully before capture
+    const images = tierList.querySelectorAll("img");
+    await Promise.all(
+      Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      })
+    );
 
-    const tierList = document.getElementById('tierList');
-
-    // Clone off-screen
-    const clone = tierList.cloneNode(true);
-    clone.id = 'tierListClone';
-    clone.style.position = 'absolute';
-    clone.style.top = '0';
-    clone.style.left = '-9999px';
-    clone.style.zIndex = '9999';
-    clone.style.background = '#111';
-    document.body.appendChild(clone);
-
-    // Force layout
-    void clone.offsetHeight;
-
-    // Fix tier-content and icons
-    clone.querySelectorAll('.tier-content').forEach(el => {
-      const rect = el.getBoundingClientRect();
-      el.style.width = rect.width + 'px';
-      el.style.height = rect.height + 'px';
-      el.style.flexWrap = 'wrap';
-      el.style.alignItems = 'flex-start';
-      el.style.justifyContent = 'flex-start';
+    // Temporarily remove transforms that can distort the result
+    const originalTransforms = [];
+    images.forEach(img => {
+      originalTransforms.push(img.style.transform);
+      img.style.transform = "none";
+      img.style.imageRendering = "auto";
     });
 
-    // ✅ NEW FIX: Preserve transform scaling exactly
-    const originalIcons = tierList.querySelectorAll('.pokemon-icon img');
-    const cloneIcons = clone.querySelectorAll('.pokemon-icon img');
-
-    cloneIcons.forEach((img, i) => {
-      const orig = originalIcons[i];
-      if (!orig) return;
-      const computed = window.getComputedStyle(orig);
-      img.style.transform = computed.transform; // keep scale/translate
-      img.style.objectFit = computed.objectFit;
-      img.style.width = computed.width;
-      img.style.height = computed.height;
-    });
-
-    // Render with html2canvas
-    const canvas = await html2canvas(clone, {
-      backgroundColor: '#111',
+    // Take high-resolution capture (scale 2 = double resolution)
+    const canvas = await html2canvas(tierList, {
       scale: 2,
       useCORS: true,
-      windowWidth: clone.scrollWidth,
-      windowHeight: clone.scrollHeight,
+      allowTaint: false,
+      backgroundColor: null,
       scrollX: 0,
-      scrollY: 0
+      scrollY: -window.scrollY,
     });
 
-    // Clean up
-    document.body.removeChild(clone);
-    saveReset.style.display = 'flex';
-    tierControls.style.display = 'flex';
-    if (isMobile) pencils.forEach(p => (p.style.visibility = 'visible'));
+    // Restore the transforms
+    images.forEach((img, i) => {
+      img.style.transform = originalTransforms[i];
+    });
 
-    // Download
-    const link = document.createElement('a');
-    link.download = 'unite-tier-list.png';
-    link.href = canvas.toDataURL('image/png');
+    // Save as PNG
+    const link = document.createElement("a");
+    link.download = "unite-tier-list.png";
+    link.href = canvas.toDataURL("image/png");
     link.click();
-  });
+  }
 
 
 
