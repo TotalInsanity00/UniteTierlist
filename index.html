@@ -414,11 +414,6 @@
         "scale": 1.8,
         "xOffset": -3,
         "yOffset": -3
-      },
-      "preview": {
-        "scale": 1.5,
-        "xOffset": 2,
-        "yOffset": 5
       }
     },
     "delphox": {
@@ -426,23 +421,13 @@
         "scale": 2.2,
         "xOffset": -1,
         "yOffset": 5
-      },
-      "preview": {
-        "scale": 1.2,
-        "xOffset": 0,
-        "yOffset": 2
       }
     },
     "charizard": {
       "icon": {
-        "scale": 2.2,
-        "xOffset": -1,
-        "yOffset": 5
-      },
-      "preview": {
-        "scale": 1.2,
-        "xOffset": 0,
-        "yOffset": 2
+        "scale": 1.8,
+        "xOffset": 15,
+        "yOffset": -2
       }
     }
   }
@@ -528,12 +513,12 @@
       const settings = imageSettings[lower]?.icon || { scale: 1, xOffset: 0, yOffset: 0 };
 
       div.innerHTML = `
-  <img 
-    src="./pokemon/unite_${lower}.png" 
-    alt="${name}" 
-    style="transform: scale(${settings.scale}) translate(${settings.xOffset}px, ${settings.yOffset}px);"
-  >
-`;
+    <img 
+      src="./pokemon/unite_${lower}.png" 
+      alt="${name}" 
+      style="transform: scale(${settings.scale}) translate(${settings.xOffset}px, ${settings.yOffset}px);"
+    >
+  `;
 
 
       div.addEventListener('dragstart', () => div.classList.add('dragging'));
@@ -586,7 +571,7 @@
     selectedPokemon = null;
   });
 
-  // --- SAVE FULL TIER LIST (preserves layout, fixes squished icons) ---
+  // --- SAVE FULL TIER LIST (pixel-perfect) ---
   document.getElementById('save').addEventListener('click', async () => {
     const saveReset = document.querySelector('.save-reset');
     const tierControls = document.querySelector('.tier-controls');
@@ -600,13 +585,14 @@
 
     const tierList = document.getElementById('tierList');
 
-    // --- Clone tier list off-screen but visible ---
+    // --- Clone tier list off-screen but fully rendered ---
     const clone = tierList.cloneNode(true);
     clone.id = 'tierListClone';
     clone.style.position = 'absolute';
     clone.style.top = '0';
-    clone.style.left = '-9999px'; // off-screen
+    clone.style.left = '0'; // keep on-screen but invisible
     clone.style.zIndex = '9999';
+    clone.style.opacity = '0';
     clone.style.background = '#111';
     clone.style.overflow = 'visible';
     clone.style.width = tierList.scrollWidth + 'px';
@@ -620,6 +606,10 @@
       const style = getComputedStyle(el);
       el.style.width = style.width;
       el.style.height = style.height;
+      el.style.minWidth = style.width;
+      el.style.minHeight = style.height;
+      el.style.maxWidth = style.width;
+      el.style.maxHeight = style.height;
       el.style.display = 'flex';
       el.style.flexWrap = 'wrap';
       el.style.alignItems = 'flex-start';
@@ -631,14 +621,18 @@
       const style = getComputedStyle(icon);
       icon.style.width = style.width;
       icon.style.height = style.height;
+      icon.style.minWidth = style.width;
+      icon.style.minHeight = style.height;
+      icon.style.maxWidth = style.width;
+      icon.style.maxHeight = style.height;
       icon.style.flex = '0 0 auto';
     });
 
     // --- Freeze Pokémon images inside icons ---
     clone.querySelectorAll('.pokemon-icon img').forEach(img => {
-      const style = getComputedStyle(img);
-      img.style.width = style.width;
-      img.style.height = style.height;
+      const rect = img.getBoundingClientRect();
+      img.style.width = rect.width + 'px';
+      img.style.height = rect.height + 'px';
       img.style.objectFit = 'contain';
     });
 
@@ -668,6 +662,7 @@
 
 
 
+
   document.getElementById('addTier').addEventListener('click', () => {
     const container = document.getElementById('tiers-container');
     const currentTierCount = container.querySelectorAll('.tier').length;
@@ -683,12 +678,12 @@
     tier.className = 'tier';
     const color = '#' + Math.floor(Math.random() * 16777215).toString(16);
     tier.innerHTML = `
-    <div class="tier-label" style="background-color:${color};" contenteditable="true">
-      NEW TIER
-      <span class="edit-icon">✏️</span>
-      <input type="color" class="color-picker" value="${color}">
-    </div>
-    <div class="tier-content"></div>`;
+      <div class="tier-label" style="background-color:${color};" contenteditable="true">
+        NEW TIER
+        <span class="edit-icon">✏️</span>
+        <input type="color" class="color-picker" value="${color}">
+      </div>
+      <div class="tier-content"></div>`;
 
     container.appendChild(tier);
 
