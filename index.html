@@ -409,7 +409,28 @@
 <script>
 
   const imageSettings = {
-  } 
+    "venusaur": {
+      "icon": {
+        "scale": 1.8,
+        "xOffset": -3,
+        "yOffset": -3
+      }
+    },
+    "delphox": {
+      "icon": {
+        "scale": 2.2,
+        "xOffset": -1,
+        "yOffset": 5
+      }
+    },
+    "charizard": {
+      "icon": {
+        "scale": 1.8,
+        "xOffset": 15,
+        "yOffset": -2
+      }
+    }
+  }
   const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
     'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
   const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
@@ -551,14 +572,11 @@
 
   document.getElementById("save").addEventListener("click", () => {
     const tierList = document.querySelector(".tier-list");
-
-    // Store original transform values
     const images = tierList.querySelectorAll(".pokemon-icon img");
-    const originalTransforms = [];
+
+    // Apply the pixelated rendering hint directly without storing/restoring transform
     images.forEach((img) => {
-      originalTransforms.push(img.style.transform);
-      img.style.transform = "none";
-      img.style.imageRendering = "pixelated"; // keeps them crisp
+      img.style.imageRendering = "pixelated"; // Keeps them crisp
     });
 
     // Wait for images to load completely
@@ -576,9 +594,8 @@
         useCORS: true,
         backgroundColor: "#111", // solid background looks cleaner than transparent
       }).then(canvas => {
-        // Restore original transforms
-        images.forEach((img, i) => {
-          img.style.transform = originalTransforms[i];
+        // Restore image rendering after capture
+        images.forEach((img) => {
           img.style.imageRendering = "auto";
         });
 
@@ -593,10 +610,6 @@
       });
     });
   });
-
-
-
-
 
   document.getElementById('addTier').addEventListener('click', () => {
     const container = document.getElementById('tiers-container');
