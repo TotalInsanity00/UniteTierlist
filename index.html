@@ -136,6 +136,9 @@
     }
 
     .pokemon-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 60px;
       height: 60px;
       border-radius: 50%;
@@ -154,7 +157,9 @@
     .pokemon-icon img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      /* not cover */
+      object-position: center;
       pointer-events: none;
     }
 
@@ -402,6 +407,22 @@
 
 
 <script>
+
+  const imageSettings = {
+    "venusaur": {
+      "icon": {
+        "scale": 1.8,
+        "xOffset": -3,
+        "yOffset": -3
+      },
+      "preview": {
+        "scale": 1.5,
+        "xOffset": 2,
+        "yOffset": 5
+      }
+    }
+  }
+
   const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
     'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
   const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
@@ -451,7 +472,7 @@
             tier.insertBefore(dragging, afterElement);
           }
 
-          previewImg.src = `./pokemon/roster-${dragging.dataset.name.toLowerCase()}.png`;
+          previewImg.src = `./pokemon/unite_${dragging.dataset.name.toLowerCase()}.png`;
           previewImg.alt = dragging.dataset.name;
         }
         setupIconReordering(); // keep reordering active
@@ -461,7 +482,7 @@
       tier.addEventListener('click', e => {
         if (selectedPokemon) {
           tier.appendChild(selectedPokemon);
-          previewImg.src = `./pokemon/roster-${selectedPokemon.dataset.name.toLowerCase()}.png`;
+          previewImg.src = `./pokemon/unite_${selectedPokemon.dataset.name.toLowerCase()}.png`;
           previewImg.alt = selectedPokemon.dataset.name;
           selectedPokemon.classList.remove('selected-touch');
           selectedPokemon = null;
@@ -479,7 +500,17 @@
       div.className = `pokemon-icon ${role}`;
       div.draggable = true;
       div.dataset.name = name;
-      div.innerHTML = `<img src='./pokemon/roster-${name.toLowerCase()}.png' alt='${name}'>`;
+      const lower = name.toLowerCase();
+      const settings = imageSettings[lower]?.icon || { scale: 1, xOffset: 0, yOffset: 0 };
+
+      div.innerHTML = `
+  <img 
+    src="./pokemon/unite_${lower}.png" 
+    alt="${name}" 
+    style="transform: scale(${settings.scale}) translate(${settings.xOffset}px, ${settings.yOffset}px);"
+  >
+`;
+
 
       div.addEventListener('dragstart', () => div.classList.add('dragging'));
       div.addEventListener('dragend', () => div.classList.remove('dragging'));
@@ -495,7 +526,11 @@
             div.classList.add('selected-touch');
           }
         }
-        previewImg.src = `./pokemon/roster-${name.toLowerCase()}.png`;
+        const lower = name.toLowerCase();
+        previewImg.src = `./pokemon/unite_${lower}.png`;
+        const settings = imageSettings[lower]?.preview || imageSettings[lower]?.icon || { scale: 1, xOffset: 0, yOffset: 0 };
+        previewImg.style.transform = `scale(${settings.scale}) translate(${settings.xOffset}px, ${settings.yOffset}px)`;
+
         previewImg.alt = name;
       });
 
@@ -527,53 +562,90 @@
     selectedPokemon = null;
   });
 
-  // --- Save ---
-  document.getElementById('save').addEventListener('click', () => {
+  // --- SAVE FULL TIER LIST (true full capture, even offscreen) ---
+  document.getElementById('save').addEventListener('click', async () => {
     const saveReset = document.querySelector('.save-reset');
     const tierControls = document.querySelector('.tier-controls');
     const pencils = document.querySelectorAll('.edit-icon');
+    const isMobile = window.innerWidth <= 768;
 
-    // Hide header controls
+    // Hide controls for clean screenshot
     saveReset.style.display = 'none';
     tierControls.style.display = 'none';
-
-    // On mobile: temporarily hide pencil icons
-    const isMobile = window.innerWidth <= 768;
     if (isMobile) pencils.forEach(p => (p.style.visibility = 'hidden'));
 
-    html2canvas(document.getElementById('tierList'), {
+    // ✅ Clone the entire tier list off-screen
+    const tierList = document.getElementById('tierList');
+    const clone = tierList.cloneNode(true);
+    clone.id = 'tierListClone';
+    clone.style.position = 'absolute';
+    clone.style.top = '0';
+    clone.style.left = '0';
+    clone.style.width = tierList.scrollWidth + 'px';
+    clone.style.height = tierList.scrollHeight + 'px';
+    clone.style.zIndex = '-9999';
+    clone.style.transform = 'scale(1)';
+    clone.style.overflow = 'visible';
+    document.body.appendChild(clone);
+
+    // Force reflow to ensure proper rendering
+    void clone.offsetHeight;
+
+    // --- Use html2canvas on the clone
+    const canvas = await html2canvas(clone, {
       backgroundColor: '#111',
       scale: 2,
-      useCORS: true
-    }).then(canvas => {
-      const link = document.createElement('a');
-      link.download = 'unite-tier-list.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-
-      // Restore UI
-      saveReset.style.display = 'flex';
-      tierControls.style.display = 'flex';
-      if (isMobile) pencils.forEach(p => (p.style.visibility = 'visible'));
+      useCORS: true,
+      windowWidth: clone.scrollWidth,
+      windowHeight: clone.scrollHeight,
+      scrollX: 0,
+      scrollY: 0
     });
+
+    // --- Cleanup and restore UI
+    document.body.removeChild(clone);
+    saveReset.style.display = 'flex';
+    tierControls.style.display = 'flex';
+    if (isMobile) pencils.forEach(p => (p.style.visibility = 'visible'));
+
+    // --- Trigger download
+    const link = document.createElement('a');
+    link.download = 'unite-tier-list.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   });
 
-  // --- Add/Remove Tier ---
+
   document.getElementById('addTier').addEventListener('click', () => {
+    const container = document.getElementById('tiers-container');
+    const currentTierCount = container.querySelectorAll('.tier').length;
+
+    // ✅ Limit to 10 tiers max
+    if (currentTierCount >= 16) {
+      alert('You can only have up to 16 tiers!');
+      return;
+    }
+
+    // --- create new tier normally ---
     const tier = document.createElement('div');
     tier.className = 'tier';
     const color = '#' + Math.floor(Math.random() * 16777215).toString(16);
     tier.innerHTML = `
-      <div class="tier-label" style="background-color:${color};" contenteditable="true">
-        NEW TIER
-        <span class="edit-icon">✏️</span>
-        <input type="color" class="color-picker" value="${color}">
-      </div>
-      <div class="tier-content"></div>`;
-    document.getElementById('tiers-container').appendChild(tier);
+    <div class="tier-label" style="background-color:${color};" contenteditable="true">
+      NEW TIER
+      <span class="edit-icon">✏️</span>
+      <input type="color" class="color-picker" value="${color}">
+    </div>
+    <div class="tier-content"></div>`;
+
+    container.appendChild(tier);
+
+    // --- reapply scripts to new tier ---
     setupDragAndDrop();
     setupColorPickers();
-    setupMobilePencils(); // ensure new tiers get pencil on mobile
+    setupMobilePencils();
+    setupTierReordering();
+    setupIconReordering();
   });
 
   // --- Remove Tier (fixed so characters return to grid) ---
