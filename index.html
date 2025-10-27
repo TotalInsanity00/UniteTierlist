@@ -202,7 +202,7 @@
       overflow: hidden;
       cursor: pointer;
       margin: 0 0 -250px 0;
-      background: url('./src/UniteDBMarker.png') no-repeat top center;
+      background: url('./preview/preview_blaziken.png') no-repeat top center;
       background-size: contain;
       display: flex;
       align-items: center;
@@ -612,12 +612,23 @@
       }
     });
 
-    // ✅ Freeze tier-content widths to avoid flex compression
+    clone.querySelectorAll('.pokemon-icon').forEach(icon => {
+      const rect = icon.getBoundingClientRect();
+      icon.style.width = rect.width + 'px';
+      icon.style.height = rect.height + 'px';
+      icon.style.flex = '0 0 auto';
+    });
+
+    // ✅ Preserve flex layout to avoid squishing
     clone.querySelectorAll('.tier-content').forEach(el => {
       const rect = el.getBoundingClientRect();
       el.style.width = rect.width + 'px';
-      el.style.display = 'block';
+      el.style.display = 'flex';
+      el.style.flexWrap = 'wrap';
+      el.style.alignItems = 'flex-start';
+      el.style.justifyContent = 'flex-start';
     });
+
 
     document.body.appendChild(clone);
     void clone.offsetHeight; // force reflow
