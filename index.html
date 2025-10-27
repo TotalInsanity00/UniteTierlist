@@ -562,7 +562,7 @@
     selectedPokemon = null;
   });
 
-  // --- SAVE FULL TIER LIST (true full capture, even offscreen) ---
+  // --- SAVE FULL TIER LIST (preserves layout, fixes squished icons) ---
   document.getElementById('save').addEventListener('click', async () => {
     const saveReset = document.querySelector('.save-reset');
     const tierControls = document.querySelector('.tier-controls');
@@ -574,22 +574,41 @@
     tierControls.style.display = 'none';
     if (isMobile) pencils.forEach(p => (p.style.visibility = 'hidden'));
 
-    // ✅ Clone the entire tier list off-screen
     const tierList = document.getElementById('tierList');
+
+    // ✅ Clone the entire tier list off-screen
     const clone = tierList.cloneNode(true);
     clone.id = 'tierListClone';
     clone.style.position = 'absolute';
     clone.style.top = '0';
     clone.style.left = '0';
-    clone.style.width = tierList.scrollWidth + 'px';
-    clone.style.height = tierList.scrollHeight + 'px';
     clone.style.zIndex = '-9999';
-    clone.style.transform = 'scale(1)';
+    clone.style.background = '#111';
     clone.style.overflow = 'visible';
-    document.body.appendChild(clone);
+    clone.style.width = tierList.scrollWidth + 'px';
 
-    // Force reflow to ensure proper rendering
-    void clone.offsetHeight;
+    // ✅ Freeze all computed widths/heights of Pokémon icons
+    clone.querySelectorAll('.pokemon-icon img').forEach(img => {
+      const orig = tierList.querySelector(
+        `.pokemon-icon[data-name="${img.alt}"] img`
+      );
+      if (orig) {
+        const rect = orig.getBoundingClientRect();
+        img.style.width = rect.width + 'px';
+        img.style.height = rect.height + 'px';
+        img.style.objectFit = 'contain';
+      }
+    });
+
+    // ✅ Freeze tier-content widths to avoid flex compression
+    clone.querySelectorAll('.tier-content').forEach(el => {
+      const rect = el.getBoundingClientRect();
+      el.style.width = rect.width + 'px';
+      el.style.display = 'block';
+    });
+
+    document.body.appendChild(clone);
+    void clone.offsetHeight; // force reflow
 
     // --- Use html2canvas on the clone
     const canvas = await html2canvas(clone, {
@@ -602,18 +621,19 @@
       scrollY: 0
     });
 
-    // --- Cleanup and restore UI
+    // Cleanup + restore
     document.body.removeChild(clone);
     saveReset.style.display = 'flex';
     tierControls.style.display = 'flex';
     if (isMobile) pencils.forEach(p => (p.style.visibility = 'visible'));
 
-    // --- Trigger download
+    // Download image
     const link = document.createElement('a');
     link.download = 'unite-tier-list.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   });
+
 
 
   document.getElementById('addTier').addEventListener('click', () => {
