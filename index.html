@@ -1023,7 +1023,7 @@
 
         div.innerHTML = `
     <img 
-      src="./pokemon/unite_${lower}.png" 
+      src="https://raw.githubusercontent.com/yourusername/pokemon-images/main/unite/unite_${lower}.png" 
       alt="${name}" 
       style="transform: scale(${settings.scale}) translate(${settings.xOffset}px, ${settings.yOffset}px);"
     >
@@ -1089,58 +1089,31 @@
 
     setupDragAndDrop();
 
-    // --- Reset ---
     document.getElementById("save").addEventListener("click", async () => {
-      const tierList = document.querySelector(".tier-list");
-      const scale = window.devicePixelRatio || 2; // Use screen DPI for best results
-
-      // Wait for fonts & images to load (helps prevent missing icons or blur)
-      await document.fonts.ready;
-      await Promise.all(
-        Array.from(document.images)
-          .filter(img => !img.complete)
-          .map(img => new Promise(resolve => (img.onload = img.onerror = resolve)))
-      );
-
-      // --- Temporary styling for crispness ---
-      const images = tierList.querySelectorAll(".pokemon-icon img");
-      images.forEach((img) => {
-        img.style.imageRendering = "pixelated";
-      });
-
-      // Get element dimensions
-      const rect = tierList.getBoundingClientRect();
-
-      // --- Use dom-to-image to convert the tier list to a PNG data URL ---
-      domtoimage.toPng(tierList, {
-        bgcolor: "#111", // Matches your background
-        quality: 1.0,
-        width: rect.width * scale,
-        height: rect.height * scale,
-        style: {
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          width: `${rect.width}px`,
-          height: `${rect.height}px`,
-        },
-      })
-        .then((dataUrl) => {
-          // --- Restore original styling after capture ---
-          images.forEach((img) => {
-            img.style.imageRendering = "auto";
-          });
-
-          // --- Save the image ---
-          const link = document.createElement("a");
-          link.download = "unite-tier-list.png";
-          link.href = dataUrl;
-          link.click();
-        })
-        .catch((error) => {
-          console.error("oops, something went wrong!", error);
-          alert("Could not save the image. Check the console for details.");
+      try {
+        const response = await fetch("http://localhost:3000/generate-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pageUrl: "http://localhost:3000/index.html" }),
         });
+
+        if (!response.ok) throw new Error("Failed to generate image");
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.download = "unite-tier-list.png";
+        link.href = url;
+        link.click();
+
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to save tier list image");
+      }
     });
+
 
 
     document.getElementById('addTier').addEventListener('click', () => {
