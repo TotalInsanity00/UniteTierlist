@@ -9,7 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/src/dom-to-image.min.js"></script>
 
-
   <style>
     body {
       margin: 0;
@@ -1024,8 +1023,8 @@
 
         div.innerHTML = `
     <img 
-      src="https://cdn.jsdelivr.net/gh/totalinsanity00/UniteTierlist/pokemon/unite_${lower}.png"
-      alt="${name}"
+      src="./pokemon/unite_${lower}.png" 
+      alt="${name}" 
       style="transform: scale(${settings.scale}) translate(${settings.xOffset}px, ${settings.yOffset}px);"
     >
   `;
@@ -1089,96 +1088,86 @@
 
 
     setupDragAndDrop();
-    // --- Save Tier List (Auto-URL GitHub Pages Safe) ---
+
+    // --- Reset ---
     document.getElementById("save").addEventListener("click", async () => {
-      const tierList = document.querySelector(".tier-list");
-      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-      const scale = isMobile ? 2 : (window.devicePixelRatio || 2.5);
+  const tierList = document.querySelector(".tier-list");
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  const scale = isMobile ? 2 : (window.devicePixelRatio || 2.5);
 
-      // --- Wait for fonts & images to load ---
-      await document.fonts.ready;
-      await Promise.all(
-        Array.from(document.images)
-          .filter((img) => !img.complete)
-          .map((img) => new Promise((resolve) => (img.onload = img.onerror = resolve)))
-      );
+  // --- Wait for fonts & images to be ready ---
+  await document.fonts.ready;
+  await Promise.all(
+    Array.from(document.images)
+      .filter((img) => !img.complete)
+      .map((img) => new Promise((resolve) => (img.onload = img.onerror = resolve)))
+  );
 
-      const images = tierList.querySelectorAll("img");
+  const images = tierList.querySelectorAll("img");
 
-      // --- Detect base URL automatically ---
-      const baseURL = `${window.location.origin}${window.location.pathname
-        .split("/")
-        .slice(0, -1)
-        .join("/")}/`;
-
-      // --- Prepare Pokémon images for CORS-safe rendering ---
-      images.forEach((img) => {
-        img.crossOrigin = "anonymous";
-
-        // If the image uses a relative path (like src/pokemon.png), make it absolute
-        if (!img.src.startsWith("http") && img.src.includes("src/")) {
-          img.src = baseURL + img.src.replace(/^(\.\/)?/, "");
+  // --- Try to inline images (skip if blocked or local) ---
+  await Promise.all(
+    Array.from(images).map(async (img) => {
+      if (!img.src.startsWith("data:")) {
+        try {
+          const res = await fetch(img.src, { mode: "cors" });
+          if (!res.ok) throw new Error("Bad response");
+          const blob = await res.blob();
+          const reader = new FileReader();
+          await new Promise((resolve) => {
+            reader.onloadend = resolve;
+            reader.readAsDataURL(blob);
+          });
+          img.dataset.originalSrc = img.src;
+          img.src = reader.result;
+        } catch (err) {
+          // Skip inlining if blocked or running locally (so desktop still works)
+          console.warn("Could not inline image:", img.src);
         }
+      }
+    })
+  );
+
+  // --- Temporary pixel rendering for crisp edges ---
+  images.forEach((img) => (img.style.imageRendering = "pixelated"));
+
+  const rect = tierList.getBoundingClientRect();
+
+  // --- Convert DOM to PNG ---
+  domtoimage
+    .toPng(tierList, {
+      bgcolor: "#111",
+      quality: 1.0,
+      width: rect.width * scale,
+      height: rect.height * scale,
+      style: {
+        transform: `scale(${scale})`,
+        transformOrigin: "top left",
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+      },
+    })
+    .then((dataUrl) => {
+      // --- Restore original image sources and style ---
+      images.forEach((img) => {
+        img.style.imageRendering = "auto";
+        if (img.dataset.originalSrc) img.src = img.dataset.originalSrc;
       });
 
-      // --- Inline images into Base64 ---
-      await Promise.all(
-        Array.from(images).map(async (img) => {
-          if (!img.src.startsWith("data:")) {
-            try {
-              const res = await fetch(img.src, { mode: "cors" });
-              if (!res.ok) throw new Error("Bad response");
-              const blob = await res.blob();
-              const reader = new FileReader();
-              await new Promise((resolve) => {
-                reader.onloadend = resolve;
-                reader.readAsDataURL(blob);
-              });
-              img.dataset.originalSrc = img.src;
-              img.src = reader.result;
-            } catch (err) {
-              console.warn("Could not inline image:", img.src, err);
-            }
-          }
-        })
-      );
-
-      // --- Temporary crisp edges for icons ---
-      images.forEach((img) => (img.style.imageRendering = "pixelated"));
-
-      const rect = tierList.getBoundingClientRect();
-
-      // --- Convert DOM to PNG ---
-      domtoimage.toPng(tierList, {
-        bgcolor: "#111", // Matches your background
-        quality: 1.0,
-        width: rect.width * scale,
-        height: rect.height * scale,
-        style: {
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          width: `${rect.width}px`,
-          height: `${rect.height}px`,
-        },
-      })
-        .then((dataUrl) => {
-          // --- Restore original styling after capture ---
-          images.forEach((img) => {
-            img.style.imageRendering = "auto";
-          });
-
-          // --- Save the image ---
-          const link = document.createElement("a");
-          link.download = "unite-tier-list.png";
-          link.href = dataUrl;
-          link.click();
-        })
-        .catch((error) => {
-          console.error("oops, something went wrong!", error);
-          alert("Could not save the image. Check the console for details.");
-        });
+      // --- Create and trigger download ---
+      const link = document.createElement("a");
+      link.download = "unite-tier-list.png";
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    })
+    .catch((err) => {
+      console.error("Save failed:", err);
+      alert("Saving failed — see console for details.");
     });
-
+});
+  
 
 
     document.getElementById('addTier').addEventListener('click', () => {
