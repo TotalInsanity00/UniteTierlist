@@ -1091,73 +1091,52 @@
 
     setupDragAndDrop();
     document.getElementById("save").addEventListener("click", async () => {
-  const tierList = document.querySelector(".tier-list");
+      const tierList = document.querySelector(".tier-list");
 
-  // --- Wait for fonts & images to be ready ---
-  await document.fonts.ready;
-  await Promise.all(
-    Array.from(tierList.querySelectorAll("img"))
-      .filter((img) => !img.complete)
-      .map((img) => new Promise((resolve) => (img.onload = img.onerror = resolve)))
-  );
+      // Wait for fonts & images
+      await document.fonts.ready;
+      await Promise.all(
+        Array.from(tierList.querySelectorAll("img"))
+          .filter(img => !img.complete)
+          .map(img => new Promise(resolve => (img.onload = img.onerror = resolve)))
+      );
 
-  // --- Clone the tier list to preserve transforms/styles ---
-  const clone = tierList.cloneNode(true);
-  const images = clone.querySelectorAll("img");
-
-  // --- Inline images to avoid CORS issues ---
-  await Promise.all(
-    Array.from(images).map(async (img) => {
-      if (!img.src.startsWith("data:")) {
-        try {
-          const res = await fetch(img.src, { mode: "cors" });
-          if (!res.ok) throw new Error("Bad response");
-          const blob = await res.blob();
-          const reader = new FileReader();
-          await new Promise((resolve) => {
-            reader.onloadend = resolve;
-            reader.readAsDataURL(blob);
-          });
-          img.src = reader.result;
-        } catch (err) {
-          console.warn("Could not inline image:", img.src);
+      // Inline images to avoid CORS issues
+      const images = tierList.querySelectorAll("img");
+      await Promise.all(Array.from(images).map(async (img) => {
+        if (!img.src.startsWith("data:")) {
+          try {
+            const res = await fetch(img.src, { mode: "cors" });
+            if (!res.ok) throw new Error("Bad response");
+            const blob = await res.blob();
+            const reader = new FileReader();
+            await new Promise(resolve => {
+              reader.onloadend = resolve;
+              reader.readAsDataURL(blob);
+            });
+            img.src = reader.result;
+          } catch (err) {
+            console.warn("Could not inline image:", img.src);
+          }
         }
-      }
+      }));
 
-      // Copy transform from original icon
-      const original = tierList.querySelector(`img[src="${img.src}"]`);
-      if (original) img.style.transform = original.style.transform;
-    })
-  );
-
-  // --- Temporarily remove any scale on the container ---
-  const originalTransform = clone.style.transform;
-  clone.style.transform = "none";
-
-  // --- Use html2canvas to capture the DOM ---
-  html2canvas(clone, {
-    backgroundColor: "#111",
-    scale: 1, // keep actual pixel size; transforms are preserved
-    useCORS: true,
-  })
-    .then((canvas) => {
-      // --- Restore transform ---
-      clone.style.transform = originalTransform;
-
-      // --- Create download link ---
-      const dataUrl = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.download = "unite-tier-list.png";
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    })
-    .catch((err) => {
-      console.error("Save failed:", err);
-      alert("Saving failed — see console for details.");
+      // Capture the tier list
+      html2canvas(tierList, {
+        backgroundColor: "#111",
+        scale: window.devicePixelRatio || 2, // preserves DPI for crisp images
+        useCORS: true,
+        allowTaint: true
+      }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "unite-tier-list.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }).catch(err => {
+        console.error("Save failed:", err);
+        alert("Saving failed — see console for details.");
+      });
     });
-});
 
 
 
