@@ -146,8 +146,8 @@
       cursor: grab;
       transition: transform 0.2s;
       flex: 0 0 auto;
-      border: 3px solid transparent;
     }
+
 
     .pokemon-icon:hover {
       transform: scale(1.1);
@@ -159,26 +159,6 @@
       object-fit: contain;
       object-position: center;
       pointer-events: none;
-    }
-
-    .attackers {
-      border-color: #cc1d11;
-    }
-
-    .allrounders {
-      border-color: #4e0d8a;
-    }
-
-    .defenders {
-      border-color: #0a6831;
-    }
-
-    .supporters {
-      border-color: #e2d627;
-    }
-
-    .speedsters {
-      border-color: #2e52f3;
     }
 
     .side-panel {
@@ -373,7 +353,7 @@
 
   <script>
 
-    const imageSettings = {
+    /*const imageSettings = {
       "venusaur": {
         "icon": {
           "scale": 1.8,
@@ -942,7 +922,9 @@
         }
       }
     }
-    const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
+    
+    */
+   const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
       'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
     const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
       'Blaziken', 'Zacian', 'Urshifuss', 'Urshifurs', 'Scizor', 'Tyranitar', 'Buzzwole', 'Azumarill', 'Aegislash', 'Dragonite',
@@ -1019,13 +1001,12 @@
         div.draggable = true;
         div.dataset.name = name;
         const lower = name.toLowerCase();
-        const settings = imageSettings[lower]?.icon || { scale: 1, xOffset: 0, yOffset: 0 };
+        //const settings = imageSettings[lower]?.icon || { scale: 1, xOffset: 0, yOffset: 0 };
 
         div.innerHTML = `
     <img 
-      src="https://raw.githubusercontent.com/yourusername/pokemon-images/main/unite/unite_${lower}.png" 
+     src="./pokemon/unite_${lower}.png" 
       alt="${name}" 
-      style="transform: scale(${settings.scale}) translate(${settings.xOffset}px, ${settings.yOffset}px);"
     >
   `;
 
@@ -1089,63 +1070,129 @@
 
     setupDragAndDrop();
 
-    document.getElementById("save").addEventListener("click", async () => {
-      try {
-        const response = await fetch("http://localhost:3000/generate-image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pageUrl: "http://localhost:3000/index.html" }),
+    function getTierListJSON() {
+      const tiers = [];
+      const unassigned = [];
+
+      // Collect tiers
+      document.querySelectorAll('#tiers-container .tier').forEach(tierDiv => {
+        const labelDiv = tierDiv.querySelector('.tier-label');
+        const tierName = labelDiv.textContent.trim();
+        const tierColor = labelDiv.style.backgroundColor;
+
+        const pokemon = [];
+        tierDiv.querySelectorAll('.pokemon-icon').forEach(icon => {
+          pokemon.push({
+            name: icon.dataset.name,
+            role: icon.classList.contains('attackers') ? 'attackers' :
+              icon.classList.contains('allrounders') ? 'allrounders' :
+                icon.classList.contains('defenders') ? 'defenders' :
+                  icon.classList.contains('supporters') ? 'supporters' :
+                    icon.classList.contains('speedsters') ? 'speedsters' : null
+          });
         });
 
-        if (!response.ok) throw new Error("Failed to generate image");
+        tiers.push({
+          name: tierName,
+          color: tierColor,
+          pokemon
+        });
+      });
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
+      // Collect unassigned Pokémon in the grid
+      document.querySelectorAll('#character-grid .pokemon-icon').forEach(icon => {
+        unassigned.push({
+          name: icon.dataset.name,
+          role: icon.classList.contains('attackers') ? 'attackers' :
+            icon.classList.contains('allrounders') ? 'allrounders' :
+              icon.classList.contains('defenders') ? 'defenders' :
+                icon.classList.contains('supporters') ? 'supporters' :
+                  icon.classList.contains('speedsters') ? 'speedsters' : null
+        });
+      });
 
+      return { tiers, unassigned };
+    }
+
+    // --- Save Tier List as Image ---
+    document.getElementById("save").addEventListener("click", async () => {
+      const tierList = document.querySelector("#tiers-container"); // or .tier-list if that's your class
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+      // Notify user on mobile about potential Safari limitation
+      if (isMobile && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+        alert(
+          "Saving images might not work properly on iOS Safari. If Pokémon icons are missing, please take a screenshot instead."
+        );
+      }
+
+      // Wait for fonts & images to load
+      await document.fonts.ready;
+      await Promise.all(
+        Array.from(document.images)
+          .filter((img) => !img.complete)
+          .map(
+            (img) =>
+              new Promise((resolve) => (img.onload = img.onerror = resolve))
+          )
+      );
+
+      // Ensure Pokémon images have crossorigin set
+      document.querySelectorAll("img").forEach((img) => {
+        if (!img.crossOrigin) img.crossOrigin = "anonymous";
+      });
+
+      try {
+        const canvas = await html2canvas(tierList, {
+          backgroundColor: "#111",
+          useCORS: true, // allow cross-origin images (GitHub/jsDelivr)
+          scale: window.devicePixelRatio || 2,
+          logging: false,
+        });
+
+        const dataUrl = canvas.toDataURL("image/png");
         const link = document.createElement("a");
         link.download = "unite-tier-list.png";
-        link.href = url;
+        link.href = dataUrl;
+        document.body.appendChild(link);
         link.click();
-
-        URL.revokeObjectURL(url);
+        link.remove();
       } catch (err) {
-        console.error(err);
-        alert("Failed to save tier list image");
+        console.error("Save failed:", err);
+        alert("Saving failed — see console for details.");
       }
     });
 
+    // --- Add Tier Button (unchanged) ---
+    document.getElementById("addTier").addEventListener("click", () => {
+      const container = document.getElementById("tiers-container");
+      const currentTierCount = container.querySelectorAll(".tier").length;
 
-
-    document.getElementById('addTier').addEventListener('click', () => {
-      const container = document.getElementById('tiers-container');
-      const currentTierCount = container.querySelectorAll('.tier').length;
-
-      // ✅ Limit to 10 tiers max
       if (currentTierCount >= 16) {
-        alert('You can only have up to 16 tiers!');
+        alert("You can only have up to 16 tiers!");
         return;
       }
 
-      // --- create new tier normally ---
-      const tier = document.createElement('div');
-      tier.className = 'tier';
-      const color = '#' + Math.floor(Math.random() * 16777215).toString(16);
+      const tier = document.createElement("div");
+      tier.className = "tier";
+      const color = "#" + Math.floor(Math.random() * 16777215).toString(16);
       tier.innerHTML = `
-      <div class="tier-label" style="background-color:${color};" contenteditable="true">
-        NEW TIER
-        <span class="edit-icon">✏️</span>
-        <input type="color" class="color-picker" value="${color}">
-      </div>
-      <div class="tier-content"></div>`;
+    <div class="tier-label" style="background-color:${color};" contenteditable="true">
+      NEW TIER
+      <span class="edit-icon">✏️</span>
+      <input type="color" class="color-picker" value="${color}">
+    </div>
+    <div class="tier-content"></div>
+  `;
 
       container.appendChild(tier);
 
-      // --- reapply scripts to new tier ---
       setupDragAndDrop();
       setupColorPickers();
       setupMobilePencils();
       setupIconReordering();
     });
+
 
     // --- Remove Tier (fixed so characters return to grid) ---
     document.getElementById('removeTier').addEventListener('click', () => {
