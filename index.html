@@ -539,7 +539,7 @@
         "icon": {
           "scale": 2.4,
           "xOffset": 10,
-          "yOffset": 0 
+          "yOffset": 0
         }
       },
       "tyranitar": {
@@ -1090,64 +1090,71 @@
     setupDragAndDrop();
 
     // --- Reset ---
-    document.getElementById('reset').addEventListener('click', () => {
-      const allIcons = document.querySelectorAll('.pokemon-icon');
-      const grid = document.getElementById('character-grid');
-      allIcons.forEach(icon => grid.appendChild(icon));
-      previewImg.src = "https://via.placeholder.com/300x150?text=Click+Pokemon";
-      previewImg.alt = "Preview";
-      selectedPokemon = null;
-    });
-
     document.getElementById("save").addEventListener("click", async () => {
       const tierList = document.querySelector(".tier-list");
-      const scale = window.devicePixelRatio || 2; // Use screen DPI for best results
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+      const scale = isMobile ? 2 : (window.devicePixelRatio || 2.5);
 
-      // Wait for fonts & images to load (helps prevent missing icons or blur)
+      // --- Ensure fonts & images are ready ---
       await document.fonts.ready;
       await Promise.all(
         Array.from(document.images)
-          .filter(img => !img.complete)
-          .map(img => new Promise(resolve => (img.onload = img.onerror = resolve)))
+          .filter((img) => !img.complete)
+          .map((img) => new Promise((resolve) => (img.onload = img.onerror = resolve)))
+      );
+
+      // --- Inline all images as base64 to prevent mobile CORS loss ---
+      const images = tierList.querySelectorAll("img");
+      await Promise.all(
+        Array.from(images).map(async (img) => {
+          if (!img.src.startsWith("data:")) {
+            const res = await fetch(img.src);
+            const blob = await res.blob();
+            const reader = new FileReader();
+            await new Promise((resolve) => {
+              reader.onloadend = resolve;
+              reader.readAsDataURL(blob);
+            });
+            img.dataset.originalSrc = img.src;
+            img.src = reader.result;
+          }
+        })
       );
 
       // --- Temporary styling for crispness ---
-      const images = tierList.querySelectorAll(".pokemon-icon img");
-      images.forEach((img) => {
-        img.style.imageRendering = "pixelated";
-      });
-
-      // Get element dimensions
+      images.forEach((img) => (img.style.imageRendering = "pixelated"));
       const rect = tierList.getBoundingClientRect();
 
-      // --- Use dom-to-image to convert the tier list to a PNG data URL ---
-      domtoimage.toPng(tierList, {
-        bgcolor: "#111", // Matches your background
-        quality: 1.0,
-        width: rect.width * scale,
-        height: rect.height * scale,
-        style: {
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          width: `${rect.width}px`,
-          height: `${rect.height}px`,
-        },
-      })
+      // --- Render to image ---
+      domtoimage
+        .toPng(tierList, {
+          bgcolor: "#111",
+          quality: 1.0,
+          width: rect.width * scale,
+          height: rect.height * scale,
+          style: {
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+            width: `${rect.width}px`,
+            height: `${rect.height}px`,
+          },
+        })
         .then((dataUrl) => {
-          // --- Restore original styling after capture ---
+          // --- Restore images and styles ---
           images.forEach((img) => {
             img.style.imageRendering = "auto";
+            if (img.dataset.originalSrc) img.src = img.dataset.originalSrc;
           });
 
-          // --- Save the image ---
+          // --- Save / share image ---
           const link = document.createElement("a");
           link.download = "unite-tier-list.png";
           link.href = dataUrl;
           link.click();
         })
-        .catch((error) => {
-          console.error("oops, something went wrong!", error);
-          alert("Could not save the image. Check the console for details.");
+        .catch((err) => {
+          console.error("Save failed:", err);
+          alert("Saving failed — possibly due to mobile memory limits.");
         });
     });
 
