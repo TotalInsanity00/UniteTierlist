@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="src/Icon.png">
   <title>Pokémon Unite Tier List</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/src/dom-to-image.min.js"></script>
 
 
   <style>
@@ -1149,28 +1149,33 @@
       const rect = tierList.getBoundingClientRect();
 
       // --- Convert DOM to PNG ---
-      htmlToImage.toPng(tierList, {
-        backgroundColor: "#111",
-        pixelRatio: scale, // handles the scaling natively
+      domtoimage.toPng(tierList, {
+        bgcolor: "#111", // Matches your background
+        quality: 1.0,
+        width: rect.width * scale,
+        height: rect.height * scale,
+        style: {
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          width: `${rect.width}px`,
+          height: `${rect.height}px`,
+        },
       })
         .then((dataUrl) => {
-          // --- Restore images ---
+          // --- Restore original styling after capture ---
           images.forEach((img) => {
             img.style.imageRendering = "auto";
-            if (img.dataset.originalSrc) img.src = img.dataset.originalSrc;
           });
 
-          // --- Trigger PNG download ---
+          // --- Save the image ---
           const link = document.createElement("a");
           link.download = "unite-tier-list.png";
           link.href = dataUrl;
-          document.body.appendChild(link);
           link.click();
-          link.remove();
         })
-        .catch((err) => {
-          console.error("Save failed:", err);
-          alert("Saving failed — see console for details.");
+        .catch((error) => {
+          console.error("oops, something went wrong!", error);
+          alert("Could not save the image. Check the console for details.");
         });
     });
 
