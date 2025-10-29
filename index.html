@@ -32,10 +32,10 @@
       top: 0;
       background-color: #111;
       z-index: 20;
-      display:inline;
+      display: flex;
       justify-content: flex-start;
       gap: 10px;
-      padding: 2px 0;
+      padding: 10px 0;
       border-bottom: 2px solid #222;
     }
 
@@ -311,8 +311,6 @@
 <body>
   <div class="tier-list" id="tierList">
     <div class="save-reset">
-      <div id="notice">As of right now, this site is desktop-only. Mobile use is not advised; saving on mobile will not
-        work.</div>
       <button id="save">SAVE</button>
       <button id="reset">RESET</button>
     </div>
@@ -1090,75 +1088,59 @@
 
 
     setupDragAndDrop();
+
+    // --- Reset ---
     document.getElementById("save").addEventListener("click", async () => {
       const tierList = document.querySelector(".tier-list");
-      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-      const scale = isMobile ? 2 : (window.devicePixelRatio || 2.5);
+      const scale = window.devicePixelRatio || 2; // Use screen DPI for best results
 
-      // --- Wait for fonts & images to load ---
+      // Wait for fonts & images to load (helps prevent missing icons or blur)
       await document.fonts.ready;
       await Promise.all(
-        Array.from(tierList.querySelectorAll("img"))
-          .filter((img) => !img.complete)
-          .map((img) => new Promise((resolve) => (img.onload = img.onerror = resolve)))
+        Array.from(document.images)
+          .filter(img => !img.complete)
+          .map(img => new Promise(resolve => (img.onload = img.onerror = resolve)))
       );
 
-      // --- Clone the tier list to preserve transforms/styles ---
-      const clone = tierList.cloneNode(true);
-      const images = clone.querySelectorAll("img");
+      // --- Temporary styling for crispness ---
+      const images = tierList.querySelectorAll(".pokemon-icon img");
+      images.forEach((img) => {
+        img.style.imageRendering = "pixelated";
+      });
 
-      // --- Inline images to avoid CORS issues ---
-      await Promise.all(
-        Array.from(images).map(async (img) => {
-          if (!img.src.startsWith("data:")) {
-            try {
-              const res = await fetch(img.src, { mode: "cors" });
-              if (!res.ok) throw new Error("Bad response");
-              const blob = await res.blob();
-              const reader = new FileReader();
-              await new Promise((resolve) => {
-                reader.onloadend = resolve;
-                reader.readAsDataURL(blob);
-              });
-              img.src = reader.result;
-            } catch (err) {
-              console.warn("Could not inline image:", img.src);
-            }
-          }
-          // Preserve icon transform styles
-          const original = tierList.querySelector(`img[src="${img.src}"]`);
-          if (original) img.style.transform = original.style.transform;
-        })
-      );
-
-      // --- Convert DOM to PNG ---
+      // Get element dimensions
       const rect = tierList.getBoundingClientRect();
-      domtoimage
-        .toPng(clone, {
-          bgcolor: "#111",
-          width: rect.width * scale,
-          height: rect.height * scale,
-          style: {
-            transform: `scale(${scale})`,
-            transformOrigin: "top left",
-            width: `${rect.width}px`,
-            height: `${rect.height}px`,
-          },
-        })
+
+      // --- Use dom-to-image to convert the tier list to a PNG data URL ---
+      domtoimage.toPng(tierList, {
+        bgcolor: "#111", // Matches your background
+        quality: 1.0,
+        width: rect.width * scale,
+        height: rect.height * scale,
+        style: {
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          width: `${rect.width}px`,
+          height: `${rect.height}px`,
+        },
+      })
         .then((dataUrl) => {
+          // --- Restore original styling after capture ---
+          images.forEach((img) => {
+            img.style.imageRendering = "auto";
+          });
+
+          // --- Save the image ---
           const link = document.createElement("a");
           link.download = "unite-tier-list.png";
           link.href = dataUrl;
-          document.body.appendChild(link);
           link.click();
-          link.remove();
         })
-        .catch((err) => {
-          console.error("Save failed:", err);
-          alert("Saving failed — see console for details.");
+        .catch((error) => {
+          console.error("oops, something went wrong!", error);
+          alert("Could not save the image. Check the console for details.");
         });
     });
-
 
 
     document.getElementById('addTier').addEventListener('click', () => {
