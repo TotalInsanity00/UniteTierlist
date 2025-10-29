@@ -1024,8 +1024,8 @@
 
         div.innerHTML = `
     <img 
-      src="./pokemon/unite_${lower}.png" 
-      alt="${name}" 
+      src="https://cdn.jsdelivr.net/gh/totalinsanity00/UniteTierlist/pokemon/unite_${lower}.png"
+      alt="${name}"
       style="transform: scale(${settings.scale}) translate(${settings.xOffset}px, ${settings.yOffset}px);"
     >
   `;
@@ -1153,26 +1153,26 @@
         backgroundColor: "#111",
         pixelRatio: scale, // handles the scaling natively
       })
-      .then((dataUrl) => {
-        // --- Restore images ---
-        images.forEach((img) => {
-          img.style.imageRendering = "auto";
-          if (img.dataset.originalSrc) img.src = img.dataset.originalSrc;
-        });
+        .then((dataUrl) => {
+          // --- Restore images ---
+          images.forEach((img) => {
+            img.style.imageRendering = "auto";
+            if (img.dataset.originalSrc) img.src = img.dataset.originalSrc;
+          });
 
-        // --- Trigger PNG download ---
-        const link = document.createElement("a");
-        link.download = "unite-tier-list.png";
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      })
-      .catch((err) => {
-        console.error("Save failed:", err);
-        alert("Saving failed — see console for details.");
-      });
-});
+          // --- Trigger PNG download ---
+          const link = document.createElement("a");
+          link.download = "unite-tier-list.png";
+          link.href = dataUrl;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        })
+        .catch((err) => {
+          console.error("Save failed:", err);
+          alert("Saving failed — see console for details.");
+        });
+    });
 
 
 
