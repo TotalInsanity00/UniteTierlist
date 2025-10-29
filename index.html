@@ -1091,72 +1091,83 @@
 
     // --- Reset ---
     document.getElementById("save").addEventListener("click", async () => {
-      const tierList = document.querySelector(".tier-list");
-      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-      const scale = isMobile ? 2 : (window.devicePixelRatio || 2.5);
+  const tierList = document.querySelector(".tier-list");
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  const scale = isMobile ? 2 : (window.devicePixelRatio || 2.5);
 
-      // --- Ensure fonts & images are ready ---
-      await document.fonts.ready;
-      await Promise.all(
-        Array.from(document.images)
-          .filter((img) => !img.complete)
-          .map((img) => new Promise((resolve) => (img.onload = img.onerror = resolve)))
-      );
+  // --- Wait for fonts & images to be ready ---
+  await document.fonts.ready;
+  await Promise.all(
+    Array.from(document.images)
+      .filter((img) => !img.complete)
+      .map((img) => new Promise((resolve) => (img.onload = img.onerror = resolve)))
+  );
 
-      // --- Inline all images as base64 to prevent mobile CORS loss ---
-      const images = tierList.querySelectorAll("img");
-      await Promise.all(
-        Array.from(images).map(async (img) => {
-          if (!img.src.startsWith("data:")) {
-            const res = await fetch(img.src);
-            const blob = await res.blob();
-            const reader = new FileReader();
-            await new Promise((resolve) => {
-              reader.onloadend = resolve;
-              reader.readAsDataURL(blob);
-            });
-            img.dataset.originalSrc = img.src;
-            img.src = reader.result;
-          }
-        })
-      );
+  const images = tierList.querySelectorAll("img");
 
-      // --- Temporary styling for crispness ---
-      images.forEach((img) => (img.style.imageRendering = "pixelated"));
-      const rect = tierList.getBoundingClientRect();
-
-      // --- Render to image ---
-      domtoimage
-        .toPng(tierList, {
-          bgcolor: "#111",
-          quality: 1.0,
-          width: rect.width * scale,
-          height: rect.height * scale,
-          style: {
-            transform: `scale(${scale})`,
-            transformOrigin: "top left",
-            width: `${rect.width}px`,
-            height: `${rect.height}px`,
-          },
-        })
-        .then((dataUrl) => {
-          // --- Restore images and styles ---
-          images.forEach((img) => {
-            img.style.imageRendering = "auto";
-            if (img.dataset.originalSrc) img.src = img.dataset.originalSrc;
+  // --- Try to inline images (skip if blocked or local) ---
+  await Promise.all(
+    Array.from(images).map(async (img) => {
+      if (!img.src.startsWith("data:")) {
+        try {
+          const res = await fetch(img.src, { mode: "cors" });
+          if (!res.ok) throw new Error("Bad response");
+          const blob = await res.blob();
+          const reader = new FileReader();
+          await new Promise((resolve) => {
+            reader.onloadend = resolve;
+            reader.readAsDataURL(blob);
           });
+          img.dataset.originalSrc = img.src;
+          img.src = reader.result;
+        } catch (err) {
+          // Skip inlining if blocked or running locally (so desktop still works)
+          console.warn("Could not inline image:", img.src);
+        }
+      }
+    })
+  );
 
-          // --- Save / share image ---
-          const link = document.createElement("a");
-          link.download = "unite-tier-list.png";
-          link.href = dataUrl;
-          link.click();
-        })
-        .catch((err) => {
-          console.error("Save failed:", err);
-          alert("Saving failed — possibly due to mobile memory limits.");
-        });
+  // --- Temporary pixel rendering for crisp edges ---
+  images.forEach((img) => (img.style.imageRendering = "pixelated"));
+
+  const rect = tierList.getBoundingClientRect();
+
+  // --- Convert DOM to PNG ---
+  domtoimage
+    .toPng(tierList, {
+      bgcolor: "#111",
+      quality: 1.0,
+      width: rect.width * scale,
+      height: rect.height * scale,
+      style: {
+        transform: `scale(${scale})`,
+        transformOrigin: "top left",
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+      },
+    })
+    .then((dataUrl) => {
+      // --- Restore original image sources and style ---
+      images.forEach((img) => {
+        img.style.imageRendering = "auto";
+        if (img.dataset.originalSrc) img.src = img.dataset.originalSrc;
+      });
+
+      // --- Create and trigger download ---
+      const link = document.createElement("a");
+      link.download = "unite-tier-list.png";
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    })
+    .catch((err) => {
+      console.error("Save failed:", err);
+      alert("Saving failed — see console for details.");
     });
+});
+
 
 
     document.getElementById('addTier').addEventListener('click', () => {
