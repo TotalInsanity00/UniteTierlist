@@ -136,7 +136,6 @@
     }
 
 
-    /* Gradient border effect using ::before */
     .pokemon-icon {
       position: relative;
       display: flex;
@@ -145,15 +144,17 @@
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      background: #272727;
-      overflow: hidden;
-      /* keeps image inside the circle */
+      padding: 3px;
+      /* gradient thickness */
+      background: linear-gradient(45deg, #ffb7b7, #ff3729);
+      /* default attacker gradient */
       cursor: grab;
+      overflow: hidden;
       transition: transform 0.2s;
       flex: 0 0 auto;
       z-index: 0;
-      /* ensures proper stacking */
     }
+
 
     .pokemon-icon:hover {
       transform: scale(1.1);
@@ -162,10 +163,11 @@
     .pokemon-icon img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
       border-radius: 50%;
-      /* ✅ ensures it follows the circle perfectly */
+      object-fit: contain;
       object-position: center;
+      background-color: #272727;
+      /* inner background replaces ::after layer */
       pointer-events: none;
     }
 
@@ -173,54 +175,44 @@
     .pokemon-icon::before {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: -2px;
+      /* slightly bigger to simulate border */
       border-radius: 50%;
-      padding: 3px;
-      /* thickness of border */
-      background: linear-gradient(45deg, #666, #999);
-      -webkit-mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
+      background: linear-gradient(45deg, #ffb7b7, #ff3729);
       z-index: -1;
-      /* ✅ places behind the image */
+    }
+
+    .pokemon-icon::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      /* inner cutoff */
+      background: #272727;
+      border-radius: 50%;
+      z-index: -1;
     }
 
     /* Role gradients */
-    .attackers::before {
+    .attackers {
       background: linear-gradient(45deg, #ffb7b7, #ff3729);
     }
 
-    .allrounders::before {
+    .allrounders {
       background: linear-gradient(45deg, #a63cff, #4e0d8a);
     }
 
-    .defenders::before {
+    .defenders {
       background: linear-gradient(45deg, #2d5241, #20e973);
     }
 
-    .supporters::before { 
+    .supporters {
       background: linear-gradient(45deg, #9c985d, #d6fa08);
     }
 
-    .speedsters::before {
+    .speedsters {
       background: linear-gradient(45deg, #52a0ff, #2e52f3);
     }
 
-
-    .pokemon-icon:hover {
-      transform: scale(1.1);
-    }
-
-    .pokemon-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center;
-      pointer-events: none;
-    }
 
     .side-panel {
       flex: 1;
@@ -1205,7 +1197,7 @@
 
       try {
         const canvas = await html2canvas(tierList, {
-          backgroundColor: "#111",
+          backgroundColor: null,
           useCORS: true, // allow cross-origin images (GitHub/jsDelivr)
           scale: window.devicePixelRatio || 2,
           logging: false,
