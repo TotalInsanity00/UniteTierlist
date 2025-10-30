@@ -135,18 +135,78 @@
       border: 2px dashed #888;
     }
 
+
+    /* Gradient border effect using ::before */
     .pokemon-icon {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      background: #222;
+      background: #272727;
       overflow: hidden;
+      /* keeps image inside the circle */
       cursor: grab;
       transition: transform 0.2s;
       flex: 0 0 auto;
+      z-index: 0;
+      /* ensures proper stacking */
+    }
+
+    .pokemon-icon:hover {
+      transform: scale(1.1);
+    }
+
+    .pokemon-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 50%;
+      /* ✅ ensures it follows the circle perfectly */
+      object-position: center;
+      pointer-events: none;
+    }
+
+    /* Gradient ring BEHIND the clipped circle */
+    .pokemon-icon::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      padding: 3px;
+      /* thickness of border */
+      background: linear-gradient(45deg, #666, #999);
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      z-index: -1;
+      /* ✅ places behind the image */
+    }
+
+    /* Role gradients */
+    .attackers::before {
+      background: linear-gradient(45deg, #ffb7b7, #ff3729);
+    }
+
+    .allrounders::before {
+      background: linear-gradient(45deg, #a63cff, #4e0d8a);
+    }
+
+    .defenders::before {
+      background: linear-gradient(45deg, #2d5241, #20e973);
+    }
+
+    .supporters::before { 
+      background: linear-gradient(45deg, #9c985d, #d6fa08);
+    }
+
+    .speedsters::before {
+      background: linear-gradient(45deg, #52a0ff, #2e52f3);
     }
 
 
@@ -925,7 +985,7 @@
     }
     
     */
-   const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
+    const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
       'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
     const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
       'Blaziken', 'Zacian', 'Urshifuss', 'Urshifurs', 'Scizor', 'Tyranitar', 'Buzzwole', 'Azumarill', 'Aegislash', 'Dragonite',
