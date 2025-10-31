@@ -146,7 +146,7 @@
       border-radius: 50%;
       padding: 3px;
       /* gradient thickness */
-      background: linear-gradient(45deg, #ffb7b7, #ff3729);
+      background: #555;
       /* default attacker gradient */
       cursor: grab;
       overflow: hidden;
@@ -192,25 +192,24 @@
       z-index: -1;
     }
 
-    /* Role gradients */
-    .attackers {
+    .attackers::before {
       background: linear-gradient(45deg, #ffb7b7, #ff3729);
     }
 
-    .allrounders {
-      background: linear-gradient(45deg, #a63cff, #4e0d8a);
+    .allrounders::before {
+      background: linear-gradient(45deg, #c587f8, #671faa);
     }
 
-    .defenders {
+    .defenders::before {
       background: linear-gradient(45deg, #2d5241, #20e973);
     }
 
-    .supporters {
-      background: linear-gradient(45deg, #9c985d, #d6fa08);
+    .supporters::before {
+      background: linear-gradient(45deg, #fcf7bd, #face08);
     }
 
-    .speedsters {
-      background: linear-gradient(45deg, #52a0ff, #2e52f3);
+    .speedsters::before {
+      background: linear-gradient(45deg, #90c2ff, #103cff);
     }
 
 
@@ -222,7 +221,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 10px;
+      padding: 0px;
       overflow: hidden;
     }
 
@@ -406,577 +405,7 @@
 
   <script>
 
-    /*const imageSettings = {
-      "venusaur": {
-        "icon": {
-          "scale": 1.8,
-          "xOffset": -3,
-          "yOffset": -3
-        }
-      },
-      "delphox": {
-        "icon": {
-          "scale": 2.2,
-          "xOffset": -1,
-          "yOffset": 5
-        }
-      },
-      "charizard": {
-        "icon": {
-          "scale": 1.8,
-          "xOffset": 15,
-          "yOffset": -2
-        }
-      },
-      "wigglytuff": {
-        "icon": {
-          "scale": 1.5,
-          "xOffset": -4,
-          "yOffset": 1
-        }
-      },
-      "slowbro": {
-        "icon": {
-          "scale": 1.8,
-          "xOffset": 2,
-          "yOffset": 9
-        }
-      },
-      "machamp": {
-        "icon": {
-          "scale": 2.4,
-          "xOffset": -3,
-          "yOffset": 7
-        }
-      },
-      "gengar": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": -5,
-          "yOffset": -5
-        }
-      },
-      "dodrio": {
-        "icon": {
-          "scale": 1.5,
-          "xOffset": 2,
-          "yOffset": 6
-        }
-      },
-      "clefable": {
-        "icon": {
-          "scale": 1.6,
-          "xOffset": 9,
-          "yOffset": 5
-        }
-      },
-      "blastoise": {
-        "icon": {
-          "scale": 1.5,
-          "xOffset": 5,
-          "yOffset": 8
-        }
-      },
-      "alolan-ninetales": {
-        "icon": {
-          "scale": 1.8,
-          "xOffset": 4,
-          "yOffset": 10
-        }
-      },
-      "pikachu": {
-        "icon": {
-          "scale": 1.5,
-          "xOffset": 10,
-          "yOffset": 5
-        },
-      },
-      "mewtwox": {
-        "icon": {
-          "scale": 3.0,
-          "xOffset": 4,
-          "yOffset": 20
-        }
-      },
-      "mewtwoy": {
-        "icon": {
-          "scale": 3.0,
-          "xOffset": 4,
-          "yOffset": 20
-        }
-      },
-      "dragonite": {
-        "icon": {
-          "scale": 1.7,
-          "xOffset": 12,
-          "yOffset": -8
-        }
-      },
-      "mr-mime": {
-        "icon": {
-          "scale": 1.8,
-          "xOffset": 0,
-          "yOffset": 10
-        }
-      },
-      "snorlax": {
-        "icon": {
-          "scale": 1.4,
-          "xOffset": 0,
-          "yOffset": 0
-        }
-      },
-      "urshifurs": {
-        "icon": {
-          "scale": 2.0,
-          "xOffset": -6,
-          "yOffset": 8
-        }
-      },
-      "urshifuss": {
-        "icon": {
-          "scale": 2.0,
-          "xOffset": 0,
-          "yOffset": 15
-        }
-      },
-      "blissey": {
-        "icon": {
-          "scale": 1.4,
-          "xOffset": 2,
-          "yOffset": 10
-        }
-      },
-      "espeon": {
-        "icon": {
-          "scale": 1.6,
-          "xOffset": -4,
-          "yOffset": 10
-        }
-      },
-      "mew": {
-        "icon": {
-          "scale": 1.4,
-          "xOffset": -4,
-          "yOffset": 8
-        }
-      },
-      "scizor": {
-        "icon": {
-          "scale": 1.6,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "scyther": {
-        "icon": {
-          "scale": 2.4,
-          "xOffset": 10,
-          "yOffset": 0
-        }
-      },
-      "tyranitar": {
-        "icon": {
-          "scale": 1.8,
-          "xOffset": -6,
-          "yOffset": 16
-        }
-      },
-      "azumarill": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "latios": {
-        "icon": {
-          "scale": 2.0,
-          "xOffset": 18,
-          "yOffset": 0
-        }
-      },
-      "alolan-raichu": {
-        "icon": {
-          "scale": 1.5,
-          "xOffset": -4,
-          "yOffset": 0
-        }
-      },
-      "armarouge": {
-        "icon": {
-          "scale": 1.7,
-          "xOffset": 2,
-          "yOffset": 10
-        }
-      },
-      "miraidon": {
-        "icon": {
-          "scale": 2.0,
-          "xOffset": -6,
-          "yOffset": 6
-        }
-      },
-      "inteleon": {
-        "icon": {
-          "scale": 1.8,
-          "xOffset": 2,
-          "yOffset": 6
-        }
-      },
-      "chandelure": {
-        "icon": {
-          "scale": 1.5,
-          "xOffset": 6,
-          "yOffset": -8
-        }
-      },
-      "dragapult": {
-        "icon": {
-          "scale": 1.6,
-          "xOffset": 6,
-          "yOffset": 4
-        }
-      },
-      "duraludon": {
-        "icon": {
-          "scale": 1.6,
-          "xOffset": -2,
-          "yOffset": 12
-        }
-      },
-      "glaceon": {
-        "icon": {
-          "scale": 1.8,
-          "xOffset": -2,
-          "yOffset": 0
-        }
-      },
-      "decidueye": {
-        "icon": {
-          "scale": 2.0,
-          "xOffset": -2,
-          "yOffset": 0
-        }
-      },
-      "sylveon": {
-        "icon": {
-          "scale": 1.6,
-          "xOffset": 7,
-          "yOffset": 2
-        }
-      },
-      "gardevoir": {
-        "icon": {
-          "scale": 2.2,
-          "xOffset": -2,
-          "yOffset": 17
-        }
-      },
-      "greninja": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": -8,
-          "yOffset": 0
-        }
-      },
-      "cramorant": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": -4,
-          "yOffset": 10
-        }
-      },
-      "cinderace": {
-        "icon": {
-          "scale": 2.0,
-          "xOffset": 0,
-          "yOffset": 0
-        }
-      },
-      "empoleon": {
-        "icon": {
-          "scale": 2.6,
-          "xOffset": -4,
-          "yOffset": 12
-        }
-      },
-      "pawmot": {
-        "icon": {
-          "scale": 1.8,
-          "xOffset": 0,
-          "yOffset": 6
-        }
-      },
-      "suicune": {
-        "icon": {
-          "scale": 2.4,
-          "xOffset": 6,
-          "yOffset": -4
-        }
-      },
-      "tinkaton": {
-        "icon": {
-          "scale": 2.6,
-          "xOffset": -14,
-          "yOffset": -10
-        }
-      },
-      "ceruledge": {
-        "icon": {
-          "scale": 2.2,
-          "xOffset": 16,
-          "yOffset": 8
-        }
-      },
-      "falinks": {
-        "icon": {
-          "scale": 1.4,
-          "xOffset": 12,
-          "yOffset": -12
-        }
-      },
-      "gyarados": {
-        "icon": {
-          "scale": 1.9,
-          "xOffset": -8,
-          "yOffset": 12
-        }
-      },
-      "metagross": {
-        "icon": {
-          "scale": 1.6,
-          "xOffset": 0,
-          "yOffset": 4
-        }
-      },
-      "mimikyu": {
-        "icon": {
-          "scale": 1.5,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "blaziken": {
-        "icon": {
-          "scale": 1.7,
-          "xOffset": 0,
-          "yOffset": 12
-        }
-      },
-      "zacian": {
-        "icon": {
-          "scale": 2.0,
-          "xOffset": -8,
-          "yOffset": 10
-        }
-      },
-      "buzzwole": {
-        "icon": {
-          "scale": 1.5,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "aegislash": {
-        "icon": {
-          "scale": 1.4,
-          "xOffset": 0,
-          "yOffset": 0
-        }
-      },
-      "tsareena": {
-        "icon": {
-          "scale": 1.5,
-          "xOffset": 4,
-          "yOffset": 5
-        }
-      },
-      "lucario": {
-        "icon": {
-          "scale": 1.8,
-          "xOffset": 0,
-          "yOffset": 8
-        }
-      },
-      "garchomp": {
-        "icon": {
-          "scale": 1.7,
-          "xOffset": -12,
-          "yOffset": 12
-        }
-      },
-      "charizardx": {
-        "icon": {
-          "scale": 2.4,
-          "xOffset": 10,
-          "yOffset": 0
-        }
-      },
-      "mlucario": {
-        "icon": {
-          "scale": 2.0,
-          "xOffset": 4,
-          "yOffset": 8
-        }
-      },
-      "ho-oh": {
-        "icon": {
-          "scale": 2.0,
-          "xOffset": -4,
-          "yOffset": 0
-        }
-      },
-      "umbreon": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "lapras": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "goodra": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "trevenant": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "greedent": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "mamoswine": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "latias": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "crustle": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "alcremie": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "psyduck": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "comfey": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "sableye": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "hoopa": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "galarian-rapidash": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "darkrai": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "meowscarada": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "leafeon": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "zoroark": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "zeraora": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "talonflame": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      },
-      "absol": {
-        "icon": {
-          "scale": 1.3,
-          "xOffset": 4,
-          "yOffset": 0
-        }
-      }
-    }
-    
-    */
+
     const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
       'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
     const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
@@ -995,7 +424,9 @@
     // --- Drag + Touch placement ---
     function setupDragAndDrop() {
       const tiers = document.querySelectorAll('.tier-content');
+      const grid = document.getElementById('character-grid');
 
+      // --- Tier drag/drop logic ---
       tiers.forEach(tier => {
         tier.addEventListener('dragover', e => {
           e.preventDefault();
@@ -1004,7 +435,8 @@
           const dragging = document.querySelector('.dragging, .dragging-icon');
           if (!dragging) return;
 
-          const afterElement = getDragAfterElement(tier, e.clientX);
+          const afterElement = getDragAfterElementTier(tier, e.clientX);
+
           if (afterElement == null) {
             tier.appendChild(dragging);
           } else {
@@ -1019,15 +451,14 @@
           tier.classList.remove('dragover');
           const dragging = document.querySelector('.dragging, .dragging-icon');
           if (dragging) {
-            const afterElement = getDragAfterElement(tier, e.clientX);
+            const afterElement = getDragAfterElementTier(tier, e.clientX);
+
             if (afterElement == null) {
               tier.appendChild(dragging);
             } else {
               tier.insertBefore(dragging, afterElement);
             }
-
-            updatePreviewImage(name);
-
+            updatePreviewImage(dragging.dataset.name);
           }
           setupIconReordering(); // keep reordering active
         });
@@ -1036,14 +467,45 @@
         tier.addEventListener('click', e => {
           if (selectedPokemon) {
             tier.appendChild(selectedPokemon);
-            updatePreviewImage(name);
+            updatePreviewImage(selectedPokemon.dataset.name);
             selectedPokemon.classList.remove('selected-touch');
             selectedPokemon = null;
             setupIconReordering();
           }
         });
       });
+
+      // --- Character grid drag/drop logic with reordering ---
+      grid.addEventListener('dragover', e => {
+        e.preventDefault();
+        const dragging = document.querySelector('.dragging, .dragging-icon');
+        if (!dragging) return;
+
+        const afterElement = getDragAfterElementGrid(grid, e.clientX, e.clientY);
+        if (afterElement == null) {
+          grid.appendChild(dragging);
+        } else {
+          grid.insertBefore(dragging, afterElement);
+        }
+      });
+
+      grid.addEventListener('dragleave', () => grid.classList.remove('dragover'));
+
+      grid.addEventListener('drop', e => {
+        e.preventDefault();
+        const dragging = document.querySelector('.dragging, .dragging-icon');
+        if (!dragging) {
+          return;
+        }
+        const afterElement = getDragAfterElementGrid(grid, e.clientX, e.clientY);
+        if (afterElement == null) {
+          grid.appendChild(dragging);
+        } else {
+          grid.insertBefore(dragging, afterElement);
+        }
+      });
     }
+
 
 
     // --- Generate Pokémon icons ---
@@ -1057,11 +519,11 @@
         //const settings = imageSettings[lower]?.icon || { scale: 1, xOffset: 0, yOffset: 0 };
 
         div.innerHTML = `
-    <img 
-     src="./pokemon/unite_${lower}.png" 
-      alt="${name}" 
-    >
-  `;
+      <img 
+      src="./pokemon/unite_${lower}.png" 
+        alt="${name}" 
+      >
+    `;
 
 
         div.addEventListener('dragstart', () => div.classList.add('dragging'));
@@ -1230,13 +692,13 @@
       tier.className = "tier";
       const color = "#" + Math.floor(Math.random() * 16777215).toString(16);
       tier.innerHTML = `
-    <div class="tier-label" style="background-color:${color};" contenteditable="true">
-      NEW TIER
-      <span class="edit-icon">✏️</span>
-      <input type="color" class="color-picker" value="${color}">
-    </div>
-    <div class="tier-content"></div>
-  `;
+      <div class="tier-label" style="background-color:${color};" contenteditable="true">
+        NEW TIER
+        <span class="edit-icon">✏️</span>
+        <input type="color" class="color-picker" value="${color}">
+      </div>
+      <div class="tier-content"></div>
+    `;
 
       container.appendChild(tier);
 
@@ -1364,7 +826,8 @@
           const dragging = document.querySelector('.dragging-icon');
           if (!dragging) return;
 
-          const afterElement = getDragAfterElement(tier, e.clientX);
+          const afterElement = getDragAfterElementTier(tier, e.clientX);
+
           if (afterElement == null) {
             tier.appendChild(dragging);
           } else {
@@ -1374,9 +837,23 @@
       });
     }
 
-    function getDragAfterElement(container, x) {
+    function getDragAfterElementGrid(container, x, y) {
       const draggableElements = [...container.querySelectorAll('.pokemon-icon:not(.dragging-icon)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offsetX = x - (box.left + box.width / 2);
+        const offsetY = y - (box.top + box.height / 2);
+        const distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+        if (distance < closest.distance) {
+          return { distance, element: child };
+        } else {
+          return closest;
+        }
+      }, { distance: Number.POSITIVE_INFINITY }).element;
+    }
 
+    function getDragAfterElementTier(container, x) {
+      const draggableElements = [...container.querySelectorAll('.pokemon-icon:not(.dragging-icon)')];
       return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
         const offset = x - box.left - box.width / 2;
@@ -1387,6 +864,7 @@
         }
       }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
+
 
     // run initially and after new tiers are added
     setupIconReordering();

@@ -1,372 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/png" href="src/Icon.png">
-  <title>Pokémon Unite Tier List</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/src/dom-to-image.min.js"></script>
-
-  <style>
-    body {
-      margin: 0;
-      background-color: #111;
-      font-family: 'Roboto', sans-serif;
-      color: white;
-      display: flex;
-      flex-direction: row;
-      height: 100vh;
-      overflow-x: hidden;
-    }
-
-    .tier-list {
-      flex: 3;
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    .save-reset {
-      position: sticky;
-      top: 0;
-      background-color: #111;
-      z-index: 20;
-      display: flex;
-      justify-content: flex-start;
-      gap: 10px;
-      padding: 10px 0;
-      border-bottom: 2px solid #222;
-    }
-
-    .button-group,
-    .tier-controls {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-      margin-top: 10px;
-    }
-
-    button {
-      background-color: #333;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      padding: 8px 15px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    button:hover {
-      background-color: #444;
-    }
-
-    .tier {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 10px;
-      background: #1c1c1c;
-      border-radius: 10px;
-      padding: 10px;
-      transition: all 0.2s ease;
-    }
-
-    .tier-label {
-      width: 100px;
-      font-weight: bold;
-      text-align: center;
-      border-radius: 5px;
-      padding: 5px;
-      margin-right: 10px;
-      cursor: pointer;
-      user-select: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      word-break: break-word;
-      position: relative;
-    }
-
-    .color-picker {
-      margin-top: 5px;
-      display: none;
-      width: 80%;
-      border: none;
-      border-radius: 5px;
-    }
-
-    .edit-icon {
-      display: none;
-      position: absolute;
-      left: -35px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 15px;
-      cursor: pointer;
-      background: #333;
-      border-radius: 50%;
-      padding: 6px;
-      border: 1px solid #555;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .edit-icon:hover {
-      background: #555;
-    }
-
-    .tier-content {
-      flex: 1;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      padding: 5px;
-      min-height: 60px;
-      border: 2px dashed transparent;
-      transition: all 0.2s ease;
-    }
-
-    .tier-content.dragover {
-      border: 2px dashed #888;
-    }
-
-    .pokemon-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: #222;
-      overflow: hidden;
-      cursor: grab;
-      transition: transform 0.2s;
-      flex: 0 0 auto;
-      border: 3px solid transparent;
-    }
-
-    .pokemon-icon:hover {
-      transform: scale(1.1);
-    }
-
-    .pokemon-icon img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center;
-      pointer-events: none;
-    }
-
-    .attackers {
-      border-color: #cc1d11;
-    }
-
-    .allrounders {
-      border-color: #4e0d8a;
-    }
-
-    .defenders {
-      border-color: #0a6831;
-    }
-
-    .supporters {
-      border-color: #e2d627;
-    }
-
-    .speedsters {
-      border-color: #2e52f3;
-    }
-
-    .side-panel {
-      flex: 1;
-      background-color: #1a1a1a;
-      border-left: 3px solid #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 10px;
-      overflow: hidden;
-    }
-
-    .character-preview {
-      width: 100%;
-      height: 100%;
-      border-radius: 2px;
-      overflow: hidden;
-      cursor: pointer;
-      margin: 0 0 -250px 0;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      background-color: transparent;
-      /* optional, just to clear any background */
-    }
-
-
-    .character-preview img {
-      max-width: 60%;
-      max-height: 60%;
-      object-fit: contain;
-      pointer-events: none;
-      display: block;
-      margin-left: auto;
-      margin-right: 10px;
-      margin-bottom: 275px;
-      transition: transform 0.25s ease;
-    }
-
-    .character-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      justify-items: center;
-      flex: 1 1 auto;
-      overflow-y: auto;
-      width: 100%;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        flex-direction: column;
-        height: auto;
-      }
-
-      .tier-list {
-        flex: none;
-        padding-bottom: 150px;
-      }
-
-      .side-panel {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 140px;
-        background-color: #1a1a1a;
-        border-top: 3px solid #333;
-        border-left: none;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        z-index: 50;
-        padding: 5px;
-      }
-
-      .character-preview {
-        display: none;
-      }
-
-      .character-grid {
-        display: grid;
-        grid-auto-flow: column;
-        grid-template-columns: none;
-        overflow-x: auto;
-        overflow-y: hidden;
-        white-space: nowrap;
-        width: 100%;
-        padding: 5px;
-        gap: 8px;
-        justify-items: start;
-        scrollbar-width: none;
-      }
-
-      .character-grid::-webkit-scrollbar {
-        display: none;
-      }
-
-      .pokemon-icon {
-        flex: 0 0 auto;
-        width: 55px;
-        height: 55px;
-      }
-
-      .edit-icon {
-        display: flex;
-      }
-    }
-
-    .swap-selected {
-      outline: 3px solid #ffd700;
-      transform: scale(1.1);
-    }
-  </style>
-</head>
-
-<body>
-  <div class="tier-list" id="tierList">
-    <div class="save-reset">
-      <button id="save">SAVE</button>
-      <button id="reset">RESET</button>
-    </div>
-
-    <div class="tier-controls">
-      <button id="addTier">+ ADD TIER</button>
-      <button id="removeTier">- REMOVE TIER</button>
-    </div>
-
-    <div id="tiers-container">
-      <div class="tier">
-        <div class="tier-label" style="background-color: #ff5722;" contenteditable="true">
-          S TIER
-          <span class="edit-icon">✏️</span>
-          <input type="color" class="color-picker" value="#ff5722">
-        </div>
-        <div class="tier-content"></div>
-      </div>
-      <div class="tier">
-        <div class="tier-label" style="background-color: #ffca28;" contenteditable="true">
-          A TIER
-          <span class="edit-icon">✏️</span>
-          <input type="color" class="color-picker" value="#ffca28">
-        </div>
-        <div class="tier-content"></div>
-      </div>
-      <div class="tier">
-        <div class="tier-label" style="background-color: #8bc34a;" contenteditable="true">
-          B TIER
-          <span class="edit-icon">✏️</span>
-          <input type="color" class="color-picker" value="#8bc34a">
-        </div>
-        <div class="tier-content"></div>
-      </div>
-      <div class="tier">
-        <div class="tier-label" style="background-color: #132781;" contenteditable="true">
-          C TIER
-          <span class="edit-icon">✏️</span>
-          <input type="color" class="color-picker" value="#132781">
-        </div>
-        <div class="tier-content"></div>
-      </div>
-      <div class="tier">
-        <div class="tier-label" style="background-color: #610f75;" contenteditable="true">
-          D TIER
-          <span class="edit-icon">✏️</span>
-          <input type="color" class="color-picker" value="#610f75">
-        </div>
-        <div class="tier-content"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="side-panel">
-    <div class="character-preview" id="preview">
-      <a id="preview-link" href="#" target="_blank">
-        <img src="https://via.placeholder.com/300x150?text=Click+Pokemon" alt="Preview">
-      </a>
-    </div>
-
-    <div class="character-grid" id="character-grid"></div>
-  </div>
-
-  <script>
-
-    const imageSettings = {
+/*const imageSettings = {
       "venusaur": {
         "icon": {
           "scale": 1.8,
@@ -433,15 +65,15 @@
       "blastoise": {
         "icon": {
           "scale": 1.5,
-          "xOffset": 7,
-          "yOffset": 6
+          "xOffset": 5,
+          "yOffset": 8
         }
       },
       "alolan-ninetales": {
         "icon": {
           "scale": 1.8,
-          "xOffset": 2,
-          "yOffset": 9
+          "xOffset": 4,
+          "yOffset": 10
         }
       },
       "pikachu": {
@@ -531,15 +163,15 @@
       "scyther": {
         "icon": {
           "scale": 2.4,
-          "xOffset": 12,
-          "yOffset": -4
+          "xOffset": 10,
+          "yOffset": 0
         }
       },
       "tyranitar": {
         "icon": {
           "scale": 1.8,
-          "xOffset": -8,
-          "yOffset": 14
+          "xOffset": -6,
+          "yOffset": 16
         }
       },
       "azumarill": {
@@ -548,436 +180,392 @@
           "xOffset": 4,
           "yOffset": 0
         }
-      }
-    }
-    const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
-      'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
-    const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
-      'Blaziken', 'Zacian', 'Urshifuss', 'Urshifurs', 'Scizor', 'Tyranitar', 'Buzzwole', 'Azumarill', 'Aegislash', 'Dragonite',
-      'Tsareena', 'Charizard', 'Lucario', 'Machamp', 'Garchomp', 'Mewtwox', 'Charizardx', 'mLucario'];
-    const defenders = ['Ho-Oh', 'Umbreon', 'Lapras', 'Goodra', 'Trevenant', 'Greedent', 'Mamoswine', 'Blastoise', 'Snorlax', 'Crustle', 'Slowbro'];
-    const supporters = ['Latias', 'Alcremie', 'Psyduck', 'Comfey', 'Sableye', 'Clefable', 'Hoopa', 'Blissey', 'Eldegoss', 'Mr-Mime', 'Wigglytuff'];
-    const speedsters = ['Galarian-Rapidash', 'Scyther', 'Darkrai', 'Meowscarada', 'Leafeon', 'Zoroark', 'Dodrio', 'Zeraora', 'Talonflame', 'Absol', 'Gengar'];
-
-    const categories = { attackers, allrounders, defenders, supporters, speedsters };
-    const grid = document.getElementById('character-grid');
-    const previewContainer = document.getElementById('preview');
-    const previewImg = previewContainer.querySelector('img');
-    let selectedPokemon = null;
-
-    // --- Drag + Touch placement ---
-    function setupDragAndDrop() {
-      const tiers = document.querySelectorAll('.tier-content');
-
-      tiers.forEach(tier => {
-        tier.addEventListener('dragover', e => {
-          e.preventDefault();
-          tier.classList.add('dragover');
-
-          const dragging = document.querySelector('.dragging, .dragging-icon');
-          if (!dragging) return;
-
-          const afterElement = getDragAfterElement(tier, e.clientX);
-          if (afterElement == null) {
-            tier.appendChild(dragging);
-          } else {
-            tier.insertBefore(dragging, afterElement);
-          }
-        });
-
-        tier.addEventListener('dragleave', () => tier.classList.remove('dragover'));
-
-        tier.addEventListener('drop', e => {
-          e.preventDefault();
-          tier.classList.remove('dragover');
-          const dragging = document.querySelector('.dragging, .dragging-icon');
-          if (dragging) {
-            const afterElement = getDragAfterElement(tier, e.clientX);
-            if (afterElement == null) {
-              tier.appendChild(dragging);
-            } else {
-              tier.insertBefore(dragging, afterElement);
-            }
-
-            updatePreviewImage(name);
-
-          }
-          setupIconReordering(); // keep reordering active
-        });
-
-        // --- Mobile tap-to-place support ---
-        tier.addEventListener('click', e => {
-          if (selectedPokemon) {
-            tier.appendChild(selectedPokemon);
-            updatePreviewImage(name);
-            selectedPokemon.classList.remove('selected-touch');
-            selectedPokemon = null;
-            setupIconReordering();
-          }
-        });
-      });
-    }
-
-
-    // --- Generate Pokémon icons ---
-    Object.entries(categories).forEach(([role, names]) => {
-      names.forEach(name => {
-        const div = document.createElement('div');
-        div.className = `pokemon-icon ${role}`;
-        div.draggable = true;
-        div.dataset.name = name;
-        const lower = name.toLowerCase();
-        const settings = imageSettings[lower]?.icon || { scale: 1, xOffset: 0, yOffset: 0 };
-
-        div.innerHTML = `
-    <img 
-      src="./pokemon/unite_${lower}.png" 
-      alt="${name}" 
-      style="transform: scale(${settings.scale}) translate(${settings.xOffset}px, ${settings.yOffset}px);"
-    >
-  `;
-
-
-        div.addEventListener('dragstart', () => div.classList.add('dragging'));
-        div.addEventListener('dragend', () => div.classList.remove('dragging'));
-
-        div.addEventListener('click', e => {
-          if (isTouchDevice()) {
-            e.stopPropagation();
-            if (selectedPokemon === div) {
-              div.classList.remove('selected-touch'); selectedPokemon = null;
-            } else {
-              if (selectedPokemon) selectedPokemon.classList.remove('selected-touch');
-              selectedPokemon = div;
-              div.classList.add('selected-touch');
-            }
-          }
-          const lower = name.toLowerCase();
-          // 👇 changed this line
-          updatePreviewImage(name);
-          const settings = imageSettings[lower]?.preview || imageSettings[lower]?.icon || { scale: 1, xOffset: 0, yOffset: 0 };
-          previewImg.style.transform = `scale(${settings.scale}) translate(${settings.xOffset}px, ${settings.yOffset}px)`;
-          previewImg.alt = name;
-        });
-
-
-        grid.appendChild(div);
-      });
-    });
-
-    document.body.addEventListener('click', e => {
-      if (selectedPokemon && !e.target.classList.contains('pokemon-icon')) {
-        selectedPokemon.classList.remove('selected-touch');
-        selectedPokemon = null;
-      }
-    });
-
-    const previewLink = document.getElementById('preview-link');
-
-    function updatePreviewImage(name) {
-      if (!name) return;
-      const lower = name.toLowerCase();
-      previewImg.src = `./preview/preview_${lower}.png`;
-      previewImg.alt = name;
-      previewLink.href = `https://unite-db.com/pokemon/${lower}`;
-    }
-
-
-    setupDragAndDrop();
-
-    // --- Reset ---
-    document.getElementById('reset').addEventListener('click', () => {
-      const allIcons = document.querySelectorAll('.pokemon-icon');
-      const grid = document.getElementById('character-grid');
-      allIcons.forEach(icon => grid.appendChild(icon));
-      previewImg.src = "https://via.placeholder.com/300x150?text=Click+Pokemon";
-      previewImg.alt = "Preview";
-      selectedPokemon = null;
-    });
-
-    document.getElementById("save").addEventListener("click", async () => {
-      const tierList = document.querySelector(".tier-list");
-      const scale = window.devicePixelRatio || 2; // Use screen DPI for best results
-
-      // Wait for fonts & images to load (helps prevent missing icons or blur)
-      await document.fonts.ready;
-      await Promise.all(
-        Array.from(document.images)
-          .filter(img => !img.complete)
-          .map(img => new Promise(resolve => (img.onload = img.onerror = resolve)))
-      );
-
-      // --- Temporary styling for crispness ---
-      const images = tierList.querySelectorAll(".pokemon-icon img");
-      images.forEach((img) => {
-        img.style.imageRendering = "pixelated";
-      });
-
-      // Get element dimensions
-      const rect = tierList.getBoundingClientRect();
-
-      // --- Use dom-to-image to convert the tier list to a PNG data URL ---
-      domtoimage.toPng(tierList, {
-        bgcolor: "#111", // Matches your background
-        quality: 1.0,
-        width: rect.width * scale,
-        height: rect.height * scale,
-        style: {
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          width: `${rect.width}px`,
-          height: `${rect.height}px`,
-        },
-      })
-        .then((dataUrl) => {
-          // --- Restore original styling after capture ---
-          images.forEach((img) => {
-            img.style.imageRendering = "auto";
-          });
-
-          // --- Save the image ---
-          const link = document.createElement("a");
-          link.download = "unite-tier-list.png";
-          link.href = dataUrl;
-          link.click();
-        })
-        .catch((error) => {
-          console.error("oops, something went wrong!", error);
-          alert("Could not save the image. Check the console for details.");
-        });
-    });
-
-
-    document.getElementById('addTier').addEventListener('click', () => {
-      const container = document.getElementById('tiers-container');
-      const currentTierCount = container.querySelectorAll('.tier').length;
-
-      // ✅ Limit to 10 tiers max
-      if (currentTierCount >= 16) {
-        alert('You can only have up to 16 tiers!');
-        return;
-      }
-
-      // --- create new tier normally ---
-      const tier = document.createElement('div');
-      tier.className = 'tier';
-      const color = '#' + Math.floor(Math.random() * 16777215).toString(16);
-      tier.innerHTML = `
-      <div class="tier-label" style="background-color:${color};" contenteditable="true">
-        NEW TIER
-        <span class="edit-icon">✏️</span>
-        <input type="color" class="color-picker" value="${color}">
-      </div>
-      <div class="tier-content"></div>`;
-
-      container.appendChild(tier);
-
-      // --- reapply scripts to new tier ---
-      setupDragAndDrop();
-      setupColorPickers();
-      setupMobilePencils();
-      setupIconReordering();
-    });
-
-    // --- Remove Tier (fixed so characters return to grid) ---
-    document.getElementById('removeTier').addEventListener('click', () => {
-      const container = document.getElementById('tiers-container');
-      const last = container.lastElementChild;
-      const grid = document.getElementById('character-grid');
-
-      if (last) {
-        // Move all Pokémon back to the grid before removing the tier
-        const icons = last.querySelectorAll('.pokemon-icon');
-        icons.forEach(icon => grid.appendChild(icon));
-
-        // Now remove the tier
-        container.removeChild(last);
-      }
-    });
-
-
-    // --- Color picker + pencil toggle ---
-    function setupColorPickers() {
-      document.querySelectorAll('.tier-label').forEach(label => {
-        const picker = label.querySelector('.color-picker');
-        const pencil = label.querySelector('.edit-icon');
-
-        // remove old listeners to avoid duplicates
-        label.replaceWith(label.cloneNode(true));
-      });
-
-      document.querySelectorAll('.tier-label').forEach(label => {
-        const picker = label.querySelector('.color-picker');
-        const pencil = label.querySelector('.edit-icon');
-
-        // --- double-click color picker toggle (desktop) ---
-        label.addEventListener('dblclick', e => {
-          e.stopPropagation();
-          picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
-        });
-
-        // --- pencil toggle (mobile & desktop) ---
-        if (pencil) {
-          pencil.onclick = e => {
-            e.stopPropagation();
-            picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
-          };
+      },
+      "latios": {
+        "icon": {
+          "scale": 2.0,
+          "xOffset": 18,
+          "yOffset": 0
         }
-
-        // --- color live update ---
-        picker.addEventListener('input', e => {
-          label.style.backgroundColor = e.target.value;
-        });
-
-        // --- hide picker when clicking outside ---
-        label.addEventListener('click', e => e.stopPropagation());
-        document.addEventListener('click', e => {
-          if (!label.contains(e.target)) picker.style.display = 'none';
-        });
-      });
-    }
-
-
-    // --- Mobile: fix pencil placement + behavior ---
-    function setupMobilePencils() {
-      if (window.innerWidth <= 768) {
-        document.querySelectorAll('.tier-label').forEach(label => {
-          let pencil = label.querySelector('.edit-icon');
-          const picker = label.querySelector('.color-picker');
-
-          if (!pencil) {
-            pencil = document.createElement('span');
-            pencil.className = 'edit-icon';
-            pencil.textContent = '✏️';
-            label.insertAdjacentElement('afterbegin', pencil);
-          }
-
-          pencil.onclick = e => {
-            e.stopPropagation();
-            picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
-          };
-        });
+      },
+      "alolan-raichu": {
+        "icon": {
+          "scale": 1.5,
+          "xOffset": -4,
+          "yOffset": 0
+        }
+      },
+      "armarouge": {
+        "icon": {
+          "scale": 1.7,
+          "xOffset": 2,
+          "yOffset": 10
+        }
+      },
+      "miraidon": {
+        "icon": {
+          "scale": 2.0,
+          "xOffset": -6,
+          "yOffset": 6
+        }
+      },
+      "inteleon": {
+        "icon": {
+          "scale": 1.8,
+          "xOffset": 2,
+          "yOffset": 6
+        }
+      },
+      "chandelure": {
+        "icon": {
+          "scale": 1.5,
+          "xOffset": 6,
+          "yOffset": -8
+        }
+      },
+      "dragapult": {
+        "icon": {
+          "scale": 1.6,
+          "xOffset": 6,
+          "yOffset": 4
+        }
+      },
+      "duraludon": {
+        "icon": {
+          "scale": 1.6,
+          "xOffset": -2,
+          "yOffset": 12
+        }
+      },
+      "glaceon": {
+        "icon": {
+          "scale": 1.8,
+          "xOffset": -2,
+          "yOffset": 0
+        }
+      },
+      "decidueye": {
+        "icon": {
+          "scale": 2.0,
+          "xOffset": -2,
+          "yOffset": 0
+        }
+      },
+      "sylveon": {
+        "icon": {
+          "scale": 1.6,
+          "xOffset": 7,
+          "yOffset": 2
+        }
+      },
+      "gardevoir": {
+        "icon": {
+          "scale": 2.2,
+          "xOffset": -2,
+          "yOffset": 17
+        }
+      },
+      "greninja": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": -8,
+          "yOffset": 0
+        }
+      },
+      "cramorant": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": -4,
+          "yOffset": 10
+        }
+      },
+      "cinderace": {
+        "icon": {
+          "scale": 2.0,
+          "xOffset": 0,
+          "yOffset": 0
+        }
+      },
+      "empoleon": {
+        "icon": {
+          "scale": 2.6,
+          "xOffset": -4,
+          "yOffset": 12
+        }
+      },
+      "pawmot": {
+        "icon": {
+          "scale": 1.8,
+          "xOffset": 0,
+          "yOffset": 6
+        }
+      },
+      "suicune": {
+        "icon": {
+          "scale": 2.4,
+          "xOffset": 6,
+          "yOffset": -4
+        }
+      },
+      "tinkaton": {
+        "icon": {
+          "scale": 2.6,
+          "xOffset": -14,
+          "yOffset": -10
+        }
+      },
+      "ceruledge": {
+        "icon": {
+          "scale": 2.2,
+          "xOffset": 16,
+          "yOffset": 8
+        }
+      },
+      "falinks": {
+        "icon": {
+          "scale": 1.4,
+          "xOffset": 12,
+          "yOffset": -12
+        }
+      },
+      "gyarados": {
+        "icon": {
+          "scale": 1.9,
+          "xOffset": -8,
+          "yOffset": 12
+        }
+      },
+      "metagross": {
+        "icon": {
+          "scale": 1.6,
+          "xOffset": 0,
+          "yOffset": 4
+        }
+      },
+      "mimikyu": {
+        "icon": {
+          "scale": 1.5,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "blaziken": {
+        "icon": {
+          "scale": 1.7,
+          "xOffset": 0,
+          "yOffset": 12
+        }
+      },
+      "zacian": {
+        "icon": {
+          "scale": 2.0,
+          "xOffset": -8,
+          "yOffset": 10
+        }
+      },
+      "buzzwole": {
+        "icon": {
+          "scale": 1.5,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "aegislash": {
+        "icon": {
+          "scale": 1.4,
+          "xOffset": 0,
+          "yOffset": 0
+        }
+      },
+      "tsareena": {
+        "icon": {
+          "scale": 1.5,
+          "xOffset": 4,
+          "yOffset": 5
+        }
+      },
+      "lucario": {
+        "icon": {
+          "scale": 1.8,
+          "xOffset": 0,
+          "yOffset": 8
+        }
+      },
+      "garchomp": {
+        "icon": {
+          "scale": 1.7,
+          "xOffset": -12,
+          "yOffset": 12
+        }
+      },
+      "charizardx": {
+        "icon": {
+          "scale": 2.4,
+          "xOffset": 10,
+          "yOffset": 0
+        }
+      },
+      "mlucario": {
+        "icon": {
+          "scale": 2.0,
+          "xOffset": 4,
+          "yOffset": 8
+        }
+      },
+      "ho-oh": {
+        "icon": {
+          "scale": 2.0,
+          "xOffset": -4,
+          "yOffset": 0
+        }
+      },
+      "umbreon": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "lapras": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "goodra": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "trevenant": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "greedent": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "mamoswine": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "latias": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "crustle": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "alcremie": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "psyduck": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "comfey": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "sableye": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "hoopa": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "galarian-rapidash": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "darkrai": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "meowscarada": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "leafeon": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "zoroark": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "zeraora": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "talonflame": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
+      },
+      "absol": {
+        "icon": {
+          "scale": 1.3,
+          "xOffset": 4,
+          "yOffset": 0
+        }
       }
     }
-
-    setupColorPickers();
-    setupMobilePencils();
-
-    // --- Helper ---
-    function isTouchDevice() {
-      return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    }
-    // also run again when a new tier is added
-    const originalAddTier = document.getElementById('addTier').onclick;
-    document.getElementById('addTier').onclick = () => {
-      originalAddTier?.();
-    };
-
-    // --- Enable Pokémon reordering within tiers ---
-    function setupIconReordering() {
-      const tiers = document.querySelectorAll('.tier-content');
-
-      tiers.forEach(tier => {
-        tier.querySelectorAll('.pokemon-icon').forEach(icon => {
-          icon.draggable = true;
-
-          icon.addEventListener('dragstart', e => {
-            e.dataTransfer.effectAllowed = 'move';
-            icon.classList.add('dragging-icon');
-          });
-
-          icon.addEventListener('dragend', () => {
-            icon.classList.remove('dragging-icon');
-          });
-        });
-
-        tier.addEventListener('dragover', e => {
-          e.preventDefault();
-          const dragging = document.querySelector('.dragging-icon');
-          if (!dragging) return;
-
-          const afterElement = getDragAfterElement(tier, e.clientX);
-          if (afterElement == null) {
-            tier.appendChild(dragging);
-          } else {
-            tier.insertBefore(dragging, afterElement);
-          }
-        });
-      });
-    }
-
-    function getDragAfterElement(container, x) {
-      const draggableElements = [...container.querySelectorAll('.pokemon-icon:not(.dragging-icon)')];
-
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = x - box.left - box.width / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
-        }
-      }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
-    // run initially and after new tiers are added
-    setupIconReordering();
-
-    // reapply when new Pokémon are dropped or tiers added
-    document.addEventListener('drop', () => setupIconReordering());
-
-    function setupMobileSwap() {
-      if (!isTouchDevice()) return; // only on mobile
-
-      let firstSelected = null;
-
-      document.querySelectorAll('.pokemon-icon').forEach(icon => {
-        icon.addEventListener('click', e => {
-          e.stopPropagation();
-
-          // first selection
-          if (!firstSelected) {
-            firstSelected = icon;
-            icon.classList.add('swap-selected');
-            return;
-          }
-
-          // second selection -> swap
-          if (firstSelected !== icon) {
-            const firstParent = firstSelected.parentNode;
-            const secondParent = icon.parentNode;
-
-            const firstNext = firstSelected.nextSibling === icon ? icon.nextSibling : firstSelected.nextSibling;
-
-            // Swap logic
-            secondParent.insertBefore(firstSelected, icon);
-            if (firstNext) {
-              firstParent.insertBefore(icon, firstNext);
-            } else {
-              firstParent.appendChild(icon);
-            }
-
-            // cleanup
-            firstSelected.classList.remove('swap-selected');
-            firstSelected = null;
-          }
-        });
-      });
-
-      // tap anywhere else clears selection
-      document.body.addEventListener('click', e => {
-        if (firstSelected && !e.target.classList.contains('pokemon-icon')) {
-          firstSelected.classList.remove('swap-selected');
-          firstSelected = null;
-        }
-      });
-    }
-
-    setupMobileSwap();
-
-  </script>
-
-
-</body>
-
-</html>
+    
+    */
