@@ -678,6 +678,37 @@
       }
     });
 
+
+    // --- Reset Tier List ---
+    document.getElementById('reset').addEventListener('click', () => {
+      const grid = document.getElementById('character-grid');
+      const tiers = document.querySelectorAll('.tier-content');
+
+      // Move all Pokémon back to the grid
+      tiers.forEach(tier => {
+        const icons = [...tier.querySelectorAll('.pokemon-icon')];
+        icons.forEach(icon => grid.appendChild(icon));
+      });
+
+      // Optional: sort grid back to original order
+      const originalOrder = [
+        ...attackers,
+        ...allrounders,
+        ...defenders,
+        ...supporters,
+        ...speedsters
+      ];
+
+      const gridIcons = [...grid.querySelectorAll('.pokemon-icon')];
+      gridIcons.sort((a, b) => {
+        const indexA = originalOrder.indexOf(a.dataset.name);
+        const indexB = originalOrder.indexOf(b.dataset.name);
+        return indexA - indexB;
+      });
+
+      gridIcons.forEach(icon => grid.appendChild(icon));
+    });
+
     // --- Add Tier Button (unchanged) ---
     document.getElementById("addTier").addEventListener("click", () => {
       const container = document.getElementById("tiers-container");
