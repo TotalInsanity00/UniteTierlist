@@ -64,29 +64,30 @@
 
     .tier {
       display: flex;
-      align-items: flex-start;
+      align-items: stretch;
+      flex-direction: column;
       margin-bottom: 10px;
       background: #1c1c1c;
       border-radius: 10px;
       padding: 10px;
       transition: all 0.2s ease;
+      gap: 6px;
     }
 
     .tier-label {
       width: 100px;
-      font-weight: bold;
       text-align: center;
-      border-radius: 5px;
-      padding: 5px;
-      margin-right: 10px;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 8px 8px 0 0;
       cursor: pointer;
       user-select: none;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      word-break: break-word;
+      justify-content: flex-start;
       position: relative;
+      z-index: 3;
     }
 
     .color-picker {
@@ -135,6 +136,19 @@
       border: 2px dashed #888;
     }
 
+    .tier-clickable {
+      width: 100px;
+      /* match label width */
+      background: rgba(255, 0, 0, 0.3);
+      cursor: pointer;
+      border-radius: 0 0 0 10px;
+      flex-grow: 1;
+      /* fills remaining vertical space */
+      align-self: stretch;
+      /* ensures full height */
+      z-index: 2;
+      transition: background 0.2s;
+    }
 
     .pokemon-icon {
       position: relative;
@@ -337,6 +351,50 @@
       outline: 3px solid #ffd700;
       transform: scale(1.1);
     }
+
+    /* --- Force desktop layout during save --- */
+    body.force-desktop {
+      width: 1200px !important;
+      transform: scale(1);
+      transform-origin: top left;
+      overflow: visible;
+    }
+
+    body.force-desktop #tiers-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    body.force-desktop .tier {
+      flex-direction: row !important;
+      align-items: center !important;
+    }
+
+    body.force-desktop .tier-row {
+      flex-wrap: wrap !important;
+      justify-content: flex-start !important;
+    }
+
+    body.force-desktop img {
+      width: 64px !important;
+      height: 64px !important;
+    }
+
+    .tier-hitzone {
+      height: 20px;
+      /* adjust as needed */
+      width: 100px;
+      /* match .tier-label width */
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .tier-label,
+    .tier-content {
+      position: relative;
+      z-index: 1;
+    }
   </style>
 </head>
 
@@ -359,6 +417,7 @@
           <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#ff5722">
         </div>
+        <div class="tier-clickable"></div>
         <div class="tier-content"></div>
       </div>
       <div class="tier">
@@ -367,6 +426,8 @@
           <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#ffca28">
         </div>
+        <div class="tier-clickable"></div>
+
         <div class="tier-content"></div>
       </div>
       <div class="tier">
@@ -375,6 +436,8 @@
           <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#8bc34a">
         </div>
+        <div class="tier-clickable"></div>
+
         <div class="tier-content"></div>
       </div>
       <div class="tier">
@@ -383,6 +446,8 @@
           <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#132781">
         </div>
+        <div class="tier-clickable"></div>
+
         <div class="tier-content"></div>
       </div>
       <div class="tier">
@@ -391,6 +456,8 @@
           <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#610f75">
         </div>
+        <div class="tier-clickable"></div>
+
         <div class="tier-content"></div>
       </div>
     </div>
@@ -425,6 +492,7 @@
     function setupDragAndDrop() {
       const tiers = document.querySelectorAll('.tier-content');
       const grid = document.getElementById('character-grid');
+      const tierClickables = document.querySelectorAll('.tier-clickable');
 
       // --- Tier drag/drop logic ---
       tiers.forEach(tier => {
@@ -473,6 +541,37 @@
             setupIconReordering();
           }
         });
+
+        tierClickables.forEach(clickable => {
+          clickable.addEventListener('click', e => {
+            const tier = clickable.closest('.tier').querySelector('.tier-content');
+            if (selectedPokemon) {
+              tier.appendChild(selectedPokemon);
+              updatePreviewImage(selectedPokemon.dataset.name);
+              selectedPokemon.classList.remove('selected-touch');
+              selectedPokemon = null;
+              setupIconReordering();
+            }
+          });
+        });
+
+        // --- Also allow tapping the label to place Pokémon ---
+        const label = tier.closest('.tier').querySelector('.tier-label');
+        if (label) {
+          label.addEventListener('click', e => {
+            // ignore clicks on the color picker or edit icon
+            if (e.target.closest('.color-picker') || e.target.classList.contains('edit-icon')) return;
+            e.stopPropagation();
+
+            if (selectedPokemon) {
+              tier.appendChild(selectedPokemon);
+              updatePreviewImage(selectedPokemon.dataset.name);
+              selectedPokemon.classList.remove('selected-touch');
+              selectedPokemon = null;
+              setupIconReordering();
+            }
+          });
+        }
       });
 
       // --- Character grid drag/drop logic with reordering ---
@@ -631,17 +730,18 @@
 
     // --- Save Tier List as Image ---
     document.getElementById("save").addEventListener("click", async () => {
-      const tierList = document.querySelector("#tiers-container"); // or .tier-list if that's your class
+      const tierList = document.querySelector("#tiers-container");
       const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
-      // Notify user on mobile about potential Safari limitation
       if (isMobile && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
         alert(
           "Saving images might not work properly on iOS Safari. If Pokémon icons are missing, please take a screenshot instead."
         );
       }
 
-      // Wait for fonts & images to load
+      // ✅ Temporarily force desktop layout
+      document.body.classList.add("force-desktop");
+
       await document.fonts.ready;
       await Promise.all(
         Array.from(document.images)
@@ -652,7 +752,6 @@
           )
       );
 
-      // Ensure Pokémon images have crossorigin set
       document.querySelectorAll("img").forEach((img) => {
         if (!img.crossOrigin) img.crossOrigin = "anonymous";
       });
@@ -660,8 +759,8 @@
       try {
         const canvas = await html2canvas(tierList, {
           backgroundColor: null,
-          useCORS: true, // allow cross-origin images (GitHub/jsDelivr)
-          scale: window.devicePixelRatio || 2,
+          useCORS: true,
+          scale: 2,
           logging: false,
         });
 
@@ -675,8 +774,12 @@
       } catch (err) {
         console.error("Save failed:", err);
         alert("Saving failed — see console for details.");
+      } finally {
+        // ✅ Remove the desktop override after saving
+        document.body.classList.remove("force-desktop");
       }
     });
+
 
 
     // --- Reset Tier List ---
@@ -904,7 +1007,6 @@
     document.addEventListener('drop', () => setupIconReordering());
 
     function setupMobileSwap() {
-      if (!isTouchDevice()) return; // only on mobile
 
       let firstSelected = null;
 
