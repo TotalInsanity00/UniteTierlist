@@ -64,30 +64,46 @@
 
     .tier {
       display: flex;
-      align-items: stretch;
-      flex-direction: column;
-      margin-bottom: 10px;
+      flex-direction: row;
+      align-items: flex-start;
+      /* prevents label from stretching */
       background: #1c1c1c;
       border-radius: 10px;
-      padding: 10px;
-      transition: all 0.2s ease;
-      gap: 6px;
+      overflow: hidden;
+      margin-bottom: 10px;
     }
 
     .tier-label {
-      width: 100px;
+      width: 110px;
       text-align: center;
       font-weight: bold;
-      padding: 5px 10px;
-      border-radius: 8px 8px 0 0;
-      cursor: pointer;
-      user-select: none;
+      color: #fff;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      border-radius: 10px 0 0 10px;
+      flex-shrink: 0;
+      user-select: none;
+      cursor: pointer;
+      z-index: 2;
+      height: fit-content;
+      /* makes label compact */
+    }
+
+    .tier-content {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: flex-start;
-      position: relative;
-      z-index: 3;
+      gap: 10px;
+      background: #1a1a1a;
+      padding: 10px 12px;
+      min-height: 80px;
+      border-radius: 0 10px 10px 0;
+      cursor: pointer;
+      transition: background 0.2s;
     }
 
     .color-picker {
@@ -121,54 +137,24 @@
       background: #555;
     }
 
-    .tier-content {
-      flex: 1;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      padding: 5px;
-      min-height: 60px;
-      border: 2px dashed transparent;
-      transition: all 0.2s ease;
-    }
-
     .tier-content.dragover {
       border: 2px dashed #888;
     }
 
-    .tier-clickable {
-      width: 100px;
-      /* match label width */
-      background: rgba(255, 0, 0, 0.3);
-      cursor: pointer;
-      border-radius: 0 0 0 10px;
-      flex-grow: 1;
-      /* fills remaining vertical space */
-      align-self: stretch;
-      /* ensures full height */
-      z-index: 2;
-      transition: background 0.2s;
-    }
-
     .pokemon-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      flex: 0 0 auto;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
       padding: 3px;
-      /* gradient thickness */
-      background: #555;
-      /* default attacker gradient */
       cursor: grab;
-      overflow: hidden;
       transition: transform 0.2s;
-      flex: 0 0 auto;
-      z-index: 0;
+      z-index: 1;
     }
-
 
     .pokemon-icon:hover {
       transform: scale(1.1);
@@ -351,7 +337,7 @@
       outline: 3px solid #ffd700;
       transform: scale(1.1);
     }
-    
+
     .tier-hitzone {
       height: 20px;
       /* adjust as needed */
@@ -383,21 +369,21 @@
 
     <div id="tiers-container">
       <div class="tier">
-        <div class="tier-label" style="background-color: #ff5722;" contenteditable="true">
+        <div class="tier-label" style="background-color:#ff5722;" contenteditable="true">
           S TIER
           <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#ff5722">
         </div>
-        <div class="tier-clickable"></div>
+
         <div class="tier-content"></div>
       </div>
+
       <div class="tier">
         <div class="tier-label" style="background-color: #ffca28;" contenteditable="true">
           A TIER
           <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#ffca28">
         </div>
-        <div class="tier-clickable"></div>
 
         <div class="tier-content"></div>
       </div>
@@ -407,7 +393,6 @@
           <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#8bc34a">
         </div>
-        <div class="tier-clickable"></div>
 
         <div class="tier-content"></div>
       </div>
@@ -417,7 +402,6 @@
           <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#132781">
         </div>
-        <div class="tier-clickable"></div>
 
         <div class="tier-content"></div>
       </div>
@@ -427,7 +411,6 @@
           <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#610f75">
         </div>
-        <div class="tier-clickable"></div>
 
         <div class="tier-content"></div>
       </div>
@@ -461,118 +444,79 @@
 
     // --- Drag + Touch placement ---
     function setupDragAndDrop() {
-      const tiers = document.querySelectorAll('.tier-content');
+      const tiers = document.querySelectorAll('.tier');
       const grid = document.getElementById('character-grid');
-      const tierClickables = document.querySelectorAll('.tier-clickable');
 
-      // --- Tier drag/drop logic ---
       tiers.forEach(tier => {
-        tier.addEventListener('dragover', e => {
-          e.preventDefault();
-          tier.classList.add('dragover');
+        const tierContent = tier.querySelector('.tier-content');
+        const label = tier.querySelector('.tier-label');
 
+        // Drag/drop
+        tierContent.addEventListener('dragover', e => {
+          e.preventDefault();
           const dragging = document.querySelector('.dragging, .dragging-icon');
           if (!dragging) return;
-
-          const afterElement = getDragAfterElementTier(tier, e.clientX);
-
-          if (afterElement == null) {
-            tier.appendChild(dragging);
-          } else {
-            tier.insertBefore(dragging, afterElement);
-          }
+          const after = getDragAfterElementTier(tierContent, e.clientX);
+          if (after == null) tierContent.appendChild(dragging);
+          else tierContent.insertBefore(dragging, after);
         });
 
-        tier.addEventListener('dragleave', () => tier.classList.remove('dragover'));
-
-        tier.addEventListener('drop', e => {
+        tierContent.addEventListener('drop', e => {
           e.preventDefault();
-          tier.classList.remove('dragover');
           const dragging = document.querySelector('.dragging, .dragging-icon');
-          if (dragging) {
-            const afterElement = getDragAfterElementTier(tier, e.clientX);
-
-            if (afterElement == null) {
-              tier.appendChild(dragging);
-            } else {
-              tier.insertBefore(dragging, afterElement);
-            }
-            updatePreviewImage(dragging.dataset.name);
-          }
-          setupIconReordering(); // keep reordering active
+          if (!dragging) return;
+          const after = getDragAfterElementTier(tierContent, e.clientX);
+          if (after == null) tierContent.appendChild(dragging);
+          else tierContent.insertBefore(dragging, after);
+          updatePreviewImage(dragging.dataset.name);
+          setupIconReordering();
         });
 
-        // --- Mobile tap-to-place support ---
+        // Click anywhere in tier (except label) to place Pokémon
         tier.addEventListener('click', e => {
-          if (selectedPokemon) {
-            tier.appendChild(selectedPokemon);
+          if (e.target.closest('.tier-label') || e.target.closest('.color-picker') || e.target.classList.contains('edit-icon')) return;
+          if (!selectedPokemon) return;
+
+          tierContent.appendChild(selectedPokemon);
+          updatePreviewImage(selectedPokemon.dataset.name);
+          selectedPokemon.classList.remove('selected-touch');
+          selectedPokemon = null;
+          setupIconReordering();
+        });
+
+        // Also allow clicking the label to place Pokémon
+        label.addEventListener('click', e => {
+          if (e.target.closest('.color-picker') || e.target.classList.contains('edit-icon')) return;
+          e.stopPropagation();
+
+          const tierContent = label.closest('.tier').querySelector('.tier-content');
+          if (selectedPokemon && tierContent) {
+            tierContent.appendChild(selectedPokemon);
             updatePreviewImage(selectedPokemon.dataset.name);
             selectedPokemon.classList.remove('selected-touch');
             selectedPokemon = null;
             setupIconReordering();
           }
         });
-
-        tierClickables.forEach(clickable => {
-          clickable.addEventListener('click', e => {
-            const tier = clickable.closest('.tier').querySelector('.tier-content');
-            if (selectedPokemon) {
-              tier.appendChild(selectedPokemon);
-              updatePreviewImage(selectedPokemon.dataset.name);
-              selectedPokemon.classList.remove('selected-touch');
-              selectedPokemon = null;
-              setupIconReordering();
-            }
-          });
-        });
-
-        // --- Also allow tapping the label to place Pokémon ---
-        const label = tier.closest('.tier').querySelector('.tier-label');
-        if (label) {
-          label.addEventListener('click', e => {
-            // ignore clicks on the color picker or edit icon
-            if (e.target.closest('.color-picker') || e.target.classList.contains('edit-icon')) return;
-            e.stopPropagation();
-
-            if (selectedPokemon) {
-              tier.appendChild(selectedPokemon);
-              updatePreviewImage(selectedPokemon.dataset.name);
-              selectedPokemon.classList.remove('selected-touch');
-              selectedPokemon = null;
-              setupIconReordering();
-            }
-          });
-        }
       });
 
-      // --- Character grid drag/drop logic with reordering ---
+      // Character grid drag/drop
       grid.addEventListener('dragover', e => {
         e.preventDefault();
         const dragging = document.querySelector('.dragging, .dragging-icon');
         if (!dragging) return;
-
-        const afterElement = getDragAfterElementGrid(grid, e.clientX, e.clientY);
-        if (afterElement == null) {
-          grid.appendChild(dragging);
-        } else {
-          grid.insertBefore(dragging, afterElement);
-        }
+        const after = getDragAfterElementGrid(grid, e.clientX, e.clientY);
+        if (after == null) grid.appendChild(dragging);
+        else grid.insertBefore(dragging, after);
       });
-
-      grid.addEventListener('dragleave', () => grid.classList.remove('dragover'));
 
       grid.addEventListener('drop', e => {
         e.preventDefault();
         const dragging = document.querySelector('.dragging, .dragging-icon');
-        if (!dragging) {
-          return;
-        }
-        const afterElement = getDragAfterElementGrid(grid, e.clientX, e.clientY);
-        if (afterElement == null) {
-          grid.appendChild(dragging);
-        } else {
-          grid.insertBefore(dragging, afterElement);
-        }
+        if (!dragging) return;
+        const after = getDragAfterElementGrid(grid, e.clientX, e.clientY);
+        if (after == null) grid.appendChild(dragging);
+        else grid.insertBefore(dragging, after);
       });
     }
 
