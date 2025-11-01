@@ -365,32 +365,79 @@
       transform: scale(1.05);
     }
 
-    .tier-actions {
-      background: #222;
-      border-radius: 0 10px 10px 0;
-      padding: 4px;
+    .tier {
+      position: relative;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 4px;
+      flex-direction: row;
+      align-items: flex-start;
+      background: #1c1c1c;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      min-height: 80px;
     }
 
+    /* Right-side control panel */
+    .tier-actions {
+      position: absolute;
+      top: 50%;
+      right: 1px;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #1f1f1f;
+      /* slightly lighter than tier bg */
+      border-radius: 8px;
+      padding: 6px 5px;
+      border: 1px solid #2b2b2b;
+      box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.04);
+      z-index: 3;
+    }
+
+    /* Buttons inside the tier actions */
     .tier-actions button {
+      width: 18px;
+      height: 18px;
       border: none;
-      border-radius: 6px;
-      background: #333;
+      border-radius: 4px;
+      background: #2b2b2b;
       color: #fff;
-      font-size: 13px;
-      padding: 3px 0;
-      width: 26px;
-      height: 22px;
-      transition: background 0.2s, transform 0.1s;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
     }
 
     .tier-actions button:hover {
       background: #444;
-      transform: scale(1.1);
+      transform: scale(1.05);
+    }
+
+    /* Optional: slightly smaller icons */
+    .tier-actions button i {
+      font-size: 11px;
+    }
+
+    /* Green add / Red remove */
+    .tier-actions .add-tier {
+      background: #2e7d32;
+    }
+
+    .tier-actions .add-tier:hover {
+      background: #43a047;
+    }
+
+    .tier-actions .remove-tier {
+      background: #b71c1c;
+    }
+
+    .tier-actions .remove-tier:hover {
+      background: #e53935;
     }
   </style>
 </head>
@@ -475,8 +522,10 @@
         <div class="tier-content"></div>
 
         <div class="tier-actions">
-          <button class="move-up">▲</button>
-          <button class="move-down">▼</button>
+          <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+          <button id="addTier">＋</button>
+          <button id="removeTier">−</button>
         </div>
       </div>
     </div>
@@ -1035,29 +1084,42 @@
 
     setupMobileSwap();
 
-    function setupTierMovement() {
-      const tiersContainer = document.getElementById('tiers-container');
-      const tiers = tiersContainer.querySelectorAll('.tier');
+    function setupTierActions() {
+      document.querySelectorAll('.tier').forEach(tier => {
+        const moveUp = tier.querySelector('.move-up');
+        const moveDown = tier.querySelector('.move-down');
+        const addTier = tier.querySelector('.add-tier');
+        const removeTier = tier.querySelector('.remove-tier');
 
-      tiers.forEach(tier => {
-        const upButton = tier.querySelector('.move-up');
-        const downButton = tier.querySelector('.move-down');
+        const container = document.getElementById('tiers-container');
 
-        upButton?.addEventListener('click', e => {
-          e.stopPropagation();
+        moveUp.onclick = () => {
           const prev = tier.previousElementSibling;
-          if (prev) {
-            tiersContainer.insertBefore(tier, prev);
-          }
-        });
+          if (prev) container.insertBefore(tier, prev);
+        };
 
-        downButton?.addEventListener('click', e => {
-          e.stopPropagation();
+        moveDown.onclick = () => {
           const next = tier.nextElementSibling;
-          if (next) {
-            tiersContainer.insertBefore(next, tier);
+          if (next) container.insertBefore(next, tier);
+        };
+
+        addTier.onclick = () => {
+          const clone = tier.cloneNode(true);
+          clone.querySelector('.tier-content').innerHTML = '';
+          container.insertBefore(clone, tier.nextElementSibling);
+          setupTierActions();
+          setupDragAndDrop();
+        };
+
+        removeTier.onclick = () => {
+          if (container.children.length > 1) {
+            const icons = tier.querySelectorAll('.pokemon-icon');
+            icons.forEach(icon => document.getElementById('character-grid').appendChild(icon));
+            tier.remove();
+          } else {
+            alert('You must have at least one tier!');
           }
-        });
+        };
       });
     }
 
