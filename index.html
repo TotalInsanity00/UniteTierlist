@@ -8,6 +8,7 @@
   <title>Pokémon Unite Tier List</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 
   <style>
@@ -363,6 +364,34 @@
     .tier-content .pokemon-icon:hover {
       transform: scale(1.05);
     }
+
+    .tier-actions {
+      background: #222;
+      border-radius: 0 10px 10px 0;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tier-actions button {
+      border: none;
+      border-radius: 6px;
+      background: #333;
+      color: #fff;
+      font-size: 13px;
+      padding: 3px 0;
+      width: 26px;
+      height: 22px;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .tier-actions button:hover {
+      background: #444;
+      transform: scale(1.1);
+    }
   </style>
 </head>
 
@@ -387,6 +416,11 @@
         </div>
 
         <div class="tier-content"></div>
+
+        <div class="tier-actions">
+          <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
       </div>
 
       <div class="tier">
@@ -397,6 +431,11 @@
         </div>
 
         <div class="tier-content"></div>
+
+        <div class="tier-actions">
+          <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
       </div>
       <div class="tier">
         <div class="tier-label" style="background-color: #8bc34a;" contenteditable="true">
@@ -406,6 +445,11 @@
         </div>
 
         <div class="tier-content"></div>
+
+        <div class="tier-actions">
+          <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
       </div>
       <div class="tier">
         <div class="tier-label" style="background-color: #132781;" contenteditable="true">
@@ -415,6 +459,11 @@
         </div>
 
         <div class="tier-content"></div>
+
+        <div class="tier-actions">
+          <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
       </div>
       <div class="tier">
         <div class="tier-label" style="background-color: #610f75;" contenteditable="true">
@@ -424,6 +473,11 @@
         </div>
 
         <div class="tier-content"></div>
+
+        <div class="tier-actions">
+          <button class="move-up">▲</button>
+          <button class="move-down">▼</button>
+        </div>
       </div>
     </div>
   </div>
@@ -766,6 +820,7 @@
       setupColorPickers();
       setupMobilePencils();
       setupIconReordering();
+      setupTierMovement();
     });
 
 
@@ -979,6 +1034,36 @@
     }
 
     setupMobileSwap();
+
+    function setupTierMovement() {
+      const tiersContainer = document.getElementById('tiers-container');
+      const tiers = tiersContainer.querySelectorAll('.tier');
+
+      tiers.forEach(tier => {
+        const upButton = tier.querySelector('.move-up');
+        const downButton = tier.querySelector('.move-down');
+
+        upButton?.addEventListener('click', e => {
+          e.stopPropagation();
+          const prev = tier.previousElementSibling;
+          if (prev) {
+            tiersContainer.insertBefore(tier, prev);
+          }
+        });
+
+        downButton?.addEventListener('click', e => {
+          e.stopPropagation();
+          const next = tier.nextElementSibling;
+          if (next) {
+            tiersContainer.insertBefore(next, tier);
+          }
+        });
+      });
+    }
+
+    // Run it on load
+    setupTierMovement();
+
 
   </script>
 
