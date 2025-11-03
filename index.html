@@ -449,11 +449,6 @@
       <button id="reset">RESET</button>
     </div>
 
-    <div class="tier-controls">
-      <button id="addTier">+ ADD TIER</button>
-      <button id="removeTier">- REMOVE TIER</button>
-    </div>
-
     <div id="tiers-container">
       <div class="tier">
         <div class="tier-label" style="background-color:#ff5722;" contenteditable="true">
@@ -467,7 +462,10 @@
         <div class="tier-actions">
           <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
           <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+          <button class="add-tier">＋</button>
+          <button class="remove-tier">−</button>
         </div>
+
       </div>
 
       <div class="tier">
@@ -482,7 +480,10 @@
         <div class="tier-actions">
           <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
           <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+          <button class="add-tier">＋</button>
+          <button class="remove-tier">−</button>
         </div>
+
       </div>
       <div class="tier">
         <div class="tier-label" style="background-color: #8bc34a;" contenteditable="true">
@@ -492,11 +493,14 @@
         </div>
 
         <div class="tier-content"></div>
-
+        
         <div class="tier-actions">
           <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
           <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+          <button class="add-tier">＋</button>
+          <button class="remove-tier">−</button>
         </div>
+
       </div>
       <div class="tier">
         <div class="tier-label" style="background-color: #132781;" contenteditable="true">
@@ -510,7 +514,10 @@
         <div class="tier-actions">
           <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
           <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+          <button class="add-tier">＋</button>
+          <button class="remove-tier">−</button>
         </div>
+
       </div>
       <div class="tier">
         <div class="tier-label" style="background-color: #610f75;" contenteditable="true">
@@ -524,9 +531,10 @@
         <div class="tier-actions">
           <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
           <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
-          <button id="addTier">＋</button>
-          <button id="removeTier">−</button>
+          <button class="add-tier">＋</button>
+          <button class="remove-tier">−</button>
         </div>
+
       </div>
     </div>
   </div>
@@ -809,8 +817,6 @@
       }
     });
 
-
-
     // --- Reset Tier List ---
     document.getElementById('reset').addEventListener('click', () => {
       const grid = document.getElementById('character-grid');
@@ -840,55 +846,6 @@
 
       gridIcons.forEach(icon => grid.appendChild(icon));
     });
-
-    // --- Add Tier Button (unchanged) ---
-    document.getElementById("addTier").addEventListener("click", () => {
-      const container = document.getElementById("tiers-container");
-      const currentTierCount = container.querySelectorAll(".tier").length;
-
-      if (currentTierCount >= 16) {
-        alert("You can only have up to 16 tiers!");
-        return;
-      }
-
-      const tier = document.createElement("div");
-      tier.className = "tier";
-      const color = "#" + Math.floor(Math.random() * 16777215).toString(16);
-      tier.innerHTML = `
-      <div class="tier-label" style="background-color:${color};" contenteditable="true">
-        NEW TIER
-        <span class="edit-icon">✏️</span>
-        <input type="color" class="color-picker" value="${color}">
-      </div>
-      <div class="tier-content"></div>
-    `;
-
-      container.appendChild(tier);
-
-      setupDragAndDrop();
-      setupColorPickers();
-      setupMobilePencils();
-      setupIconReordering();
-      setupTierMovement();
-    });
-
-
-    // --- Remove Tier (fixed so characters return to grid) ---
-    document.getElementById('removeTier').addEventListener('click', () => {
-      const container = document.getElementById('tiers-container');
-      const last = container.lastElementChild;
-      const grid = document.getElementById('character-grid');
-
-      if (last) {
-        // Move all Pokémon back to the grid before removing the tier
-        const icons = last.querySelectorAll('.pokemon-icon');
-        icons.forEach(icon => grid.appendChild(icon));
-
-        // Now remove the tier
-        container.removeChild(last);
-      }
-    });
-
 
     // --- Color picker + pencil toggle ---
     function setupColorPickers() {
@@ -931,7 +888,6 @@
       });
     }
 
-
     // --- Mobile: fix pencil placement + behavior ---
     function setupMobilePencils() {
       if (window.innerWidth <= 768) {
@@ -959,13 +915,9 @@
 
     // --- Helper ---
     function isTouchDevice() {
+      
       return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     }
-    // also run again when a new tier is added
-    const originalAddTier = document.getElementById('addTier').onclick;
-    document.getElementById('addTier').onclick = () => {
-      originalAddTier?.();
-    };
 
     // --- Enable Pokémon reordering within tiers ---
     function setupIconReordering() {
@@ -1084,47 +1036,96 @@
 
     setupMobileSwap();
 
+    // ---- MOVE TIER UP ----
+    function moveTierUp(tier) {
+      const container = document.getElementById('tiers-container');
+      const prev = tier.previousElementSibling;
+      if (prev) container.insertBefore(tier, prev);
+    }
+
+    // ---- MOVE TIER DOWN ----
+    function moveTierDown(tier) {
+      const container = document.getElementById('tiers-container');
+      const next = tier.nextElementSibling;
+      if (next) container.insertBefore(next, tier);
+    }
+
+    // ---- ADD NEW TIER BELOW ----
+    function addNewTierBelow(tier) {
+      const container = document.getElementById('tiers-container');
+      const color = "#" + Math.floor(Math.random() * 16777215).toString(16);
+
+      const newTier = document.createElement('div');
+      newTier.className = 'tier';
+      newTier.innerHTML = `
+    <div class="tier-label" style="background-color:${color};" contenteditable="true">
+      NEW TIER
+      <span class="edit-icon">✏️</span>
+      <input type="color" class="color-picker" value="${color}">
+    </div>
+    <div class="tier-content"></div>
+    <div class="tier-actions">
+      <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+      <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+      <button class="add-tier">＋</button>
+      <button class="remove-tier">−</button>
+    </div>
+  `;
+
+      // Insert directly BELOW the clicked tier
+      container.insertBefore(newTier, tier.nextElementSibling);
+
+      // Reinitialize helpers for new tier
+      setupColorPickers();
+      setupMobilePencils();
+      setupDragAndDrop();
+      setupIconReordering();
+    }
+
+    // ---- REMOVE CURRENT TIER ----
+    function removeCurrentTier(tier) {
+      const container = document.getElementById('tiers-container');
+      const grid = document.getElementById('character-grid');
+
+      if (container.children.length > 1) {
+        const icons = tier.querySelectorAll('.pokemon-icon');
+        icons.forEach(icon => grid.appendChild(icon));
+        tier.remove();
+      } else {
+        alert('You must have at least one tier!');
+      }
+    }
+
+    // ---- SINGLE EVENT DELEGATION ----
     function setupTierActions() {
-      document.querySelectorAll('.tier').forEach(tier => {
-        const moveUp = tier.querySelector('.move-up');
-        const moveDown = tier.querySelector('.move-down');
-        const addTier = tier.querySelector('.add-tier');
-        const removeTier = tier.querySelector('.remove-tier');
+      const container = document.getElementById('tiers-container');
 
-        const container = document.getElementById('tiers-container');
+      // Remove any previous listener to avoid stacking
+      container.replaceWith(container.cloneNode(true));
+      const freshContainer = document.getElementById('tiers-container');
 
-        moveUp.onclick = () => {
-          const prev = tier.previousElementSibling;
-          if (prev) container.insertBefore(tier, prev);
-        };
+      // Listen for ALL clicks inside the tiers container
+      freshContainer.addEventListener('click', e => {
+        const button = e.target.closest('button');
+        if (!button) return;
 
-        moveDown.onclick = () => {
-          const next = tier.nextElementSibling;
-          if (next) container.insertBefore(next, tier);
-        };
+        const tier = e.target.closest('.tier');
+        if (!tier) return;
 
-        addTier.onclick = () => {
-          const clone = tier.cloneNode(true);
-          clone.querySelector('.tier-content').innerHTML = '';
-          container.insertBefore(clone, tier.nextElementSibling);
-          setupTierActions();
-          setupDragAndDrop();
-        };
-
-        removeTier.onclick = () => {
-          if (container.children.length > 1) {
-            const icons = tier.querySelectorAll('.pokemon-icon');
-            icons.forEach(icon => document.getElementById('character-grid').appendChild(icon));
-            tier.remove();
-          } else {
-            alert('You must have at least one tier!');
-          }
-        };
+        if (button.classList.contains('move-up')) {
+          moveTierUp(tier);
+        } else if (button.classList.contains('move-down')) {
+          moveTierDown(tier);
+        } else if (button.classList.contains('add-tier')) {
+          addNewTierBelow(tier);
+        } else if (button.classList.contains('remove-tier')) {
+          removeCurrentTier(tier);
+        }
       });
     }
 
     // Run it on load
-    setupTierMovement();
+    setupTierActions();
 
 
   </script>
