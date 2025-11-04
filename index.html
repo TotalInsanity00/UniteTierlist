@@ -493,7 +493,7 @@
         </div>
 
         <div class="tier-content"></div>
-        
+
         <div class="tier-actions">
           <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
           <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
@@ -915,7 +915,7 @@
 
     // --- Helper ---
     function isTouchDevice() {
-      
+
       return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     }
 
@@ -1100,29 +1100,29 @@
     function setupTierActions() {
       const container = document.getElementById('tiers-container');
 
-      // Remove any previous listener to avoid stacking
-      container.replaceWith(container.cloneNode(true));
-      const freshContainer = document.getElementById('tiers-container');
-
-      // Listen for ALL clicks inside the tiers container
-      freshContainer.addEventListener('click', e => {
-        const button = e.target.closest('button');
-        if (!button) return;
-
-        const tier = e.target.closest('.tier');
-        if (!tier) return;
-
-        if (button.classList.contains('move-up')) {
-          moveTierUp(tier);
-        } else if (button.classList.contains('move-down')) {
-          moveTierDown(tier);
-        } else if (button.classList.contains('add-tier')) {
-          addNewTierBelow(tier);
-        } else if (button.classList.contains('remove-tier')) {
-          removeCurrentTier(tier);
-        }
-      });
+      // Remove any old delegated listener only once (safe cleanup)
+      container.removeEventListener('click', handleTierActionClick);
+      container.addEventListener('click', handleTierActionClick);
     }
+
+    function handleTierActionClick(e) {
+      const button = e.target.closest('button');
+      if (!button) return;
+
+      const tier = e.target.closest('.tier');
+      if (!tier) return;
+
+      if (button.classList.contains('move-up')) {
+        moveTierUp(tier);
+      } else if (button.classList.contains('move-down')) {
+        moveTierDown(tier);
+      } else if (button.classList.contains('add-tier')) {
+        addNewTierBelow(tier);
+      } else if (button.classList.contains('remove-tier')) {
+        removeCurrentTier(tier);
+      }
+    }
+
 
     // Run it on load
     setupTierActions();
