@@ -467,7 +467,7 @@
 </head>
 
 <body>
-  
+
   <div class="tier-list" id="tierList">
     <div class="save-reset">
       <button id="save">SAVE</button>
@@ -509,7 +509,7 @@
 
       </div>
       <div class="tier">
-        <div class="tier-label" style="background-color: #8bc34a;"data-editable="true">
+        <div class="tier-label" style="background-color: #8bc34a;" data-editable="true">
           B TIER
           <input type="color" class="color-picker" value="#8bc34a">
         </div>
@@ -525,7 +525,7 @@
 
       </div>
       <div class="tier">
-        <div class="tier-label" style="background-color: #132781;"data-editable="true">
+        <div class="tier-label" style="background-color: #132781;" data-editable="true">
           C TIER
           <input type="color" class="color-picker" value="#132781">
         </div>
@@ -1088,6 +1088,7 @@
       setupDragAndDrop();
       setupIconReordering();
       saveTierListToLocalStorage();
+      setupSafeTierEditing();
 
     }
 
@@ -1190,7 +1191,68 @@
       setupDragAndDrop();
       setupIconReordering();
       setupTierActions();
+      setupSafeTierEditing(); // ✅ add this
     }
+
+    // --- Enable safe tier name editing (prevents accidental touches) ---
+    // --- Enable safe tier name editing (prevents accidental touches) ---
+    function setupSafeTierEditing() {
+      document.querySelectorAll('.tier-label').forEach(label => {
+        if (label.dataset.hasEditingSetup) return; // prevent duplicate binding
+        label.dataset.hasEditingSetup = "true";
+
+        label.contentEditable = "false";
+
+        // --- Desktop: double-click to edit ---
+        label.addEventListener('dblclick', e => {
+          e.stopPropagation();
+          label.contentEditable = "true";
+          label.focus();
+          label.dataset.editing = "true";
+
+          const range = document.createRange();
+          range.selectNodeContents(label);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        });
+
+        // --- Mobile: long press (600ms) to edit ---
+        let pressTimer;
+        label.addEventListener('touchstart', e => {
+          pressTimer = setTimeout(() => {
+            label.contentEditable = "true";
+            label.focus();
+            label.dataset.editing = "true";
+          }, 600);
+        });
+
+        label.addEventListener('touchend', () => clearTimeout(pressTimer));
+
+        // --- Exit edit mode on blur or Enter ---
+        label.addEventListener('blur', () => {
+          label.contentEditable = "false";
+          label.dataset.editing = "false";
+          saveTierListToLocalStorage();
+        });
+
+        label.addEventListener('keydown', e => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            label.blur();
+          }
+        });
+
+        // --- Stop Pokémon placement while editing ---
+        label.addEventListener('click', e => {
+          if (label.dataset.editing === "true") e.stopPropagation();
+        });
+      });
+    }
+
+
+    // Run after tiers are loaded
+    setupSafeTierEditing();
 
 
   </script>
