@@ -84,7 +84,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 10px;
+      padding: 6px 10px;
       border-radius: 10px 0 0 10px;
       flex-shrink: 0;
       user-select: none;
@@ -476,7 +476,7 @@
 
     <div id="tiers-container">
       <div class="tier">
-        <div class="tier-label" style="background-color:#ff5722;" contenteditable="true">
+        <div class="tier-label" style="background-color:#ff5722;" data-editable="true">
           S TIER
           <input type="color" class="color-picker" value="#ff5722">
         </div>
@@ -493,7 +493,7 @@
       </div>
 
       <div class="tier">
-        <div class="tier-label" style="background-color: #ffca28;" contenteditable="true">
+        <div class="tier-label" style="background-color: #ffca28;" data-editable="true">
           A TIER
           <input type="color" class="color-picker" value="#ffca28">
         </div>
@@ -509,7 +509,7 @@
 
       </div>
       <div class="tier">
-        <div class="tier-label" style="background-color: #8bc34a;" contenteditable="true">
+        <div class="tier-label" style="background-color: #8bc34a;"data-editable="true">
           B TIER
           <input type="color" class="color-picker" value="#8bc34a">
         </div>
@@ -525,7 +525,7 @@
 
       </div>
       <div class="tier">
-        <div class="tier-label" style="background-color: #132781;" contenteditable="true">
+        <div class="tier-label" style="background-color: #132781;"data-editable="true">
           C TIER
           <input type="color" class="color-picker" value="#132781">
         </div>
@@ -541,7 +541,7 @@
 
       </div>
       <div class="tier">
-        <div class="tier-label" style="background-color: #610f75;" contenteditable="true">
+        <div class="tier-label" style="background-color: #610f75;" data-editable="true">
           D TIER
           <input type="color" class="color-picker" value="#610f75">
         </div>
@@ -1067,7 +1067,7 @@
       const newTier = document.createElement('div');
       newTier.className = 'tier';
       newTier.innerHTML = `
-      <div class="tier-label" style="background-color:${color};" contenteditable="true">
+      <div class="tier-label" style="background-color:${color};" data-editable="true">
         NEW TIER
         <input type="color" class="color-picker" value="${color}">
       </div>
@@ -1157,7 +1157,7 @@
         const tier = document.createElement('div');
         tier.className = 'tier';
         tier.innerHTML = `
-      <div class="tier-label" style="background-color:${t.color};" contenteditable="true">
+      <div class="tier-label" style="background-color:${t.color};" data-editable="true">
         ${t.name}
         <input type="color" class="color-picker" value="${t.color}">
       </div>
