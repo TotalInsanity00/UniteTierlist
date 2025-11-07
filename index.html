@@ -463,6 +463,43 @@
     .tier-actions .remove-tier:hover {
       background: #e53935;
     }
+
+    /* When forcing desktop mode for saving */
+    body.force-desktop {
+      flex-direction: row !important;
+      height: 100vh !important;
+    }
+
+    body.force-desktop .tier-list {
+      flex: 3 !important;
+      padding-bottom: 0 !important;
+    }
+
+    body.force-desktop .side-panel {
+      position: static !important;
+      width: 25% !important;
+      height: auto !important;
+      border-top: none !important;
+      border-left: 3px solid #333 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+      background-color: #1a1a1a !important;
+    }
+
+    body.force-desktop .character-preview {
+      display: flex !important;
+      height: 220px !important;
+    }
+
+    body.force-desktop .character-grid {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      width: 100% !important;
+    }
   </style>
 </head>
 
