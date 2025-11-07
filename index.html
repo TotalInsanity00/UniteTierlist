@@ -72,6 +72,8 @@
       border-radius: 10px;
       overflow: hidden;
       margin-bottom: 10px;
+      padding-right: 45px;
+      /* ✅ reserves space for the action buttons */
     }
 
     .tier-label {
@@ -228,16 +230,18 @@
 
     .character-preview {
       width: 100%;
-      height: 100%;
+      height: 220px;
+      /* ✅ Increased height for better visibility */
       border-radius: 10px;
       overflow: hidden;
       cursor: pointer;
-      margin: 0 0 -250px 0;
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: center;
       background-color: transparent;
-      /* optional, just to clear any background */
+      flex-shrink: 0;
+      /* ✅ Keeps it from collapsing when grid grows */
+      margin-bottom: 0;
     }
 
 
@@ -254,19 +258,39 @@
     }
 
     .character-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 2px;
-      justify-items: center;
-      flex: 1 1 auto;
-      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      /* keeps icons anchored left */
+      align-content: flex-start;
+      /* ensures top anchoring */
+      align-items: flex-start;
+      gap: 8px;
+      flex: 1;
       width: 100%;
-      padding-top: 10px;
-      overflow-y: scroll;
-      /* keeps scrolling functional */
+      overflow-y: auto;
+      padding: 10px;
+      box-sizing: border-box;
       scrollbar-width: none;
-      /* Firefox */
+      position: relative;
     }
+
+    .character-grid .pokemon-icon {
+      width: 60px;
+      height: 60px;
+      flex: 0 0 60px;
+      /* ✅ fixed base size */
+      margin: 0;
+      /* remove rounding drift */
+    }
+
+    .character-grid::after {
+      content: "";
+      flex: auto;
+      /* ✅ fills leftover space evenly */
+      height: 0;
+    }
+
 
     .character-grid::-webkit-scrollbar {
       display: none;
@@ -443,17 +467,18 @@
 </head>
 
 <body>
+  
   <div class="tier-list" id="tierList">
     <div class="save-reset">
       <button id="save">SAVE</button>
       <button id="reset">RESET</button>
+      <button onclick="localStorage.clear(); location.reload();">CLEAR SAVE</button>
     </div>
 
     <div id="tiers-container">
       <div class="tier">
         <div class="tier-label" style="background-color:#ff5722;" contenteditable="true">
           S TIER
-          <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#ff5722">
         </div>
 
@@ -471,7 +496,6 @@
       <div class="tier">
         <div class="tier-label" style="background-color: #ffca28;" contenteditable="true">
           A TIER
-          <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#ffca28">
         </div>
 
@@ -488,7 +512,6 @@
       <div class="tier">
         <div class="tier-label" style="background-color: #8bc34a;" contenteditable="true">
           B TIER
-          <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#8bc34a">
         </div>
 
@@ -505,7 +528,6 @@
       <div class="tier">
         <div class="tier-label" style="background-color: #132781;" contenteditable="true">
           C TIER
-          <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#132781">
         </div>
 
@@ -522,7 +544,6 @@
       <div class="tier">
         <div class="tier-label" style="background-color: #610f75;" contenteditable="true">
           D TIER
-          <span class="edit-icon">✏️</span>
           <input type="color" class="color-picker" value="#610f75">
         </div>
 
@@ -541,8 +562,6 @@
 
   <div class="side-panel">
     <div class="character-preview" id="preview" title="Click to view on Unite-DB"></div>
-
-
     <div class="character-grid" id="character-grid"></div>
   </div>
 
@@ -592,6 +611,8 @@
           else tierContent.insertBefore(dragging, after);
           updatePreviewImage(dragging.dataset.name);
           setupIconReordering();
+          saveTierListToLocalStorage();
+
         });
 
         // Click anywhere in tier (except label) to place Pokémon
@@ -604,6 +625,8 @@
           selectedPokemon.classList.remove('selected-touch');
           selectedPokemon = null;
           setupIconReordering();
+          saveTierListToLocalStorage();
+
         });
 
         // Also allow clicking the label to place Pokémon
@@ -618,6 +641,8 @@
             selectedPokemon.classList.remove('selected-touch');
             selectedPokemon = null;
             setupIconReordering();
+            saveTierListToLocalStorage();
+
           }
         });
       });
@@ -639,6 +664,7 @@
         const after = getDragAfterElementGrid(grid, e.clientX, e.clientY);
         if (after == null) grid.appendChild(dragging);
         else grid.insertBefore(dragging, after);
+        saveTierListToLocalStorage();
       });
     }
 
@@ -655,11 +681,11 @@
         //const settings = imageSettings[lower]?.icon || { scale: 1, xOffset: 0, yOffset: 0 };
 
         div.innerHTML = `
-      <img 
-      src="./pokemon/unite_${lower}.png" 
-        alt="${name}" 
-      >
-    `;
+        <img 
+        src="./pokemon/unite_${lower}.png" 
+          alt="${name}" 
+        >
+      `;
 
 
         div.addEventListener('dragstart', () => div.classList.add('dragging'));
@@ -688,6 +714,11 @@
         grid.appendChild(div);
       });
     });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadTierListFromLocalStorage();
+    });
+
 
     document.body.addEventListener('click', e => {
       if (selectedPokemon && !e.target.classList.contains('pokemon-icon')) {
@@ -799,7 +830,9 @@
           useCORS: true,
           scale: 2,
           logging: false,
+          ignoreElements: (element) => element.classList.contains('tier-actions'), // ✅ omit action buttons
         });
+
 
         const dataUrl = canvas.toDataURL("image/png");
         const link = document.createElement("a");
@@ -826,6 +859,8 @@
       tiers.forEach(tier => {
         const icons = [...tier.querySelectorAll('.pokemon-icon')];
         icons.forEach(icon => grid.appendChild(icon));
+        saveTierListToLocalStorage();
+
       });
 
       // Optional: sort grid back to original order
@@ -847,11 +882,9 @@
       gridIcons.forEach(icon => grid.appendChild(icon));
     });
 
-    // --- Color picker + pencil toggle ---
     function setupColorPickers() {
       document.querySelectorAll('.tier-label').forEach(label => {
         const picker = label.querySelector('.color-picker');
-        const pencil = label.querySelector('.edit-icon');
 
         // remove old listeners to avoid duplicates
         label.replaceWith(label.cloneNode(true));
@@ -859,21 +892,12 @@
 
       document.querySelectorAll('.tier-label').forEach(label => {
         const picker = label.querySelector('.color-picker');
-        const pencil = label.querySelector('.edit-icon');
 
         // --- double-click color picker toggle (desktop) ---
         label.addEventListener('dblclick', e => {
           e.stopPropagation();
           picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
         });
-
-        // --- pencil toggle (mobile & desktop) ---
-        if (pencil) {
-          pencil.onclick = e => {
-            e.stopPropagation();
-            picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
-          };
-        }
 
         // --- color live update ---
         picker.addEventListener('input', e => {
@@ -888,30 +912,8 @@
       });
     }
 
-    // --- Mobile: fix pencil placement + behavior ---
-    function setupMobilePencils() {
-      if (window.innerWidth <= 768) {
-        document.querySelectorAll('.tier-label').forEach(label => {
-          let pencil = label.querySelector('.edit-icon');
-          const picker = label.querySelector('.color-picker');
-
-          if (!pencil) {
-            pencil = document.createElement('span');
-            pencil.className = 'edit-icon';
-            pencil.textContent = '✏️';
-            label.insertAdjacentElement('afterbegin', pencil);
-          }
-
-          pencil.onclick = e => {
-            e.stopPropagation();
-            picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
-          };
-        });
-      }
-    }
 
     setupColorPickers();
-    setupMobilePencils();
 
     // --- Helper ---
     function isTouchDevice() {
@@ -1021,6 +1023,8 @@
             // cleanup
             firstSelected.classList.remove('swap-selected');
             firstSelected = null;
+            saveTierListToLocalStorage();
+
           }
         });
       });
@@ -1030,6 +1034,8 @@
         if (firstSelected && !e.target.classList.contains('pokemon-icon')) {
           firstSelected.classList.remove('swap-selected');
           firstSelected = null;
+          saveTierListToLocalStorage();
+
         }
       });
     }
@@ -1041,6 +1047,8 @@
       const container = document.getElementById('tiers-container');
       const prev = tier.previousElementSibling;
       if (prev) container.insertBefore(tier, prev);
+      saveTierListToLocalStorage();
+
     }
 
     // ---- MOVE TIER DOWN ----
@@ -1048,6 +1056,8 @@
       const container = document.getElementById('tiers-container');
       const next = tier.nextElementSibling;
       if (next) container.insertBefore(next, tier);
+      saveTierListToLocalStorage();
+
     }
 
     // ---- ADD NEW TIER BELOW ----
@@ -1058,28 +1068,28 @@
       const newTier = document.createElement('div');
       newTier.className = 'tier';
       newTier.innerHTML = `
-    <div class="tier-label" style="background-color:${color};" contenteditable="true">
-      NEW TIER
-      <span class="edit-icon">✏️</span>
-      <input type="color" class="color-picker" value="${color}">
-    </div>
-    <div class="tier-content"></div>
-    <div class="tier-actions">
-      <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
-      <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
-      <button class="add-tier">＋</button>
-      <button class="remove-tier">−</button>
-    </div>
-  `;
+      <div class="tier-label" style="background-color:${color};" contenteditable="true">
+        NEW TIER
+        <input type="color" class="color-picker" value="${color}">
+      </div>
+      <div class="tier-content"></div>
+      <div class="tier-actions">
+        <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+        <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        <button class="add-tier">＋</button>
+        <button class="remove-tier">−</button>
+      </div>
+    `;
 
       // Insert directly BELOW the clicked tier
       container.insertBefore(newTier, tier.nextElementSibling);
 
       // Reinitialize helpers for new tier
       setupColorPickers();
-      setupMobilePencils();
       setupDragAndDrop();
       setupIconReordering();
+      saveTierListToLocalStorage();
+
     }
 
     // ---- REMOVE CURRENT TIER ----
@@ -1094,6 +1104,8 @@
       } else {
         alert('You must have at least one tier!');
       }
+      saveTierListToLocalStorage();
+
     }
 
     // ---- SINGLE EVENT DELEGATION ----
@@ -1126,6 +1138,60 @@
 
     // Run it on load
     setupTierActions();
+
+    function saveTierListToLocalStorage() {
+      const data = getTierListJSON();
+      localStorage.setItem('tierListData', JSON.stringify(data));
+    }
+
+    function loadTierListFromLocalStorage() {
+      const saved = localStorage.getItem('tierListData');
+      if (!saved) return;
+
+      const { tiers, unassigned } = JSON.parse(saved);
+      const container = document.getElementById('tiers-container');
+      const grid = document.getElementById('character-grid');
+
+      container.innerHTML = ''; // clear existing
+
+      tiers.forEach(t => {
+        const tier = document.createElement('div');
+        tier.className = 'tier';
+        tier.innerHTML = `
+      <div class="tier-label" style="background-color:${t.color};" contenteditable="true">
+        ${t.name}
+        <input type="color" class="color-picker" value="${t.color}">
+      </div>
+      <div class="tier-content"></div>
+      <div class="tier-actions">
+        <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+        <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        <button class="add-tier">＋</button>
+        <button class="remove-tier">−</button>
+      </div>
+    `;
+
+        const tierContent = tier.querySelector('.tier-content');
+        t.pokemon.forEach(p => {
+          const icon = document.querySelector(`.pokemon-icon[data-name="${p.name}"]`);
+          if (icon) tierContent.appendChild(icon);
+        });
+
+        container.appendChild(tier);
+      });
+
+      // Re-append unassigned Pokémon
+      unassigned.forEach(p => {
+        const icon = document.querySelector(`.pokemon-icon[data-name="${p.name}"]`);
+        if (icon) grid.appendChild(icon);
+      });
+
+      // Reinitialize all event bindings
+      setupColorPickers();
+      setupDragAndDrop();
+      setupIconReordering();
+      setupTierActions();
+    }
 
 
   </script>
