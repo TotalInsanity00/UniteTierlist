@@ -500,6 +500,38 @@
       overflow-y: auto !important;
       width: 100% !important;
     }
+
+    /* Prevent mobile @media from overriding when saving */
+    body.force-desktop * {
+      transition: none !important;
+    }
+
+    @media (max-width: 768px) {
+      body.force-desktop {
+        flex-direction: row !important;
+        height: 100vh !important;
+      }
+
+      body.force-desktop .side-panel {
+        position: static !important;
+        width: 25% !important;
+        height: auto !important;
+        border-left: 3px solid #333 !important;
+        border-top: none !important;
+      }
+
+      body.force-desktop .character-preview {
+        display: flex !important;
+        height: 220px !important;
+      }
+
+      body.force-desktop .character-grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+      }
+    }
   </style>
 </head>
 
@@ -717,11 +749,11 @@
         //const settings = imageSettings[lower]?.icon || { scale: 1, xOffset: 0, yOffset: 0 };
 
         div.innerHTML = `
-        <img 
-        src="./pokemon/unite_${lower}.png" 
-          alt="${name}" 
-        >
-      `;
+          <img 
+          src="./pokemon/unite_${lower}.png" 
+            alt="${name}" 
+          >
+        `;
 
 
         div.addEventListener('dragstart', () => div.classList.add('dragging'));
@@ -834,57 +866,56 @@
 
     // --- Save Tier List as Image ---
     document.getElementById("save").addEventListener("click", async () => {
-      const tierList = document.querySelector("#tiers-container");
-      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  const tierList = document.querySelector("#tiers-container");
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-      if (isMobile && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
-        alert(
-          "Saving images might not work properly on iOS Safari. If Pokémon icons are missing, please take a screenshot instead."
-        );
-      }
+  if (isMobile) {
+    // Temporarily force desktop layout for mobile only
+    document.body.classList.add("force-desktop");
+    await new Promise(r => setTimeout(r, 300)); // Give layout a moment to reflow
+  }
 
-      // ✅ Temporarily force desktop layout
-      document.body.classList.add("force-desktop");
+  await document.fonts.ready;
+  await Promise.all(
+    Array.from(document.images)
+      .filter((img) => !img.complete)
+      .map(
+        (img) =>
+          new Promise((resolve) => (img.onload = img.onerror = resolve))
+      )
+  );
 
-      await document.fonts.ready;
-      await Promise.all(
-        Array.from(document.images)
-          .filter((img) => !img.complete)
-          .map(
-            (img) =>
-              new Promise((resolve) => (img.onload = img.onerror = resolve))
-          )
-      );
+  document.querySelectorAll("img").forEach((img) => {
+    if (!img.crossOrigin) img.crossOrigin = "anonymous";
+  });
 
-      document.querySelectorAll("img").forEach((img) => {
-        if (!img.crossOrigin) img.crossOrigin = "anonymous";
-      });
-
-      try {
-        const canvas = await html2canvas(tierList, {
-          backgroundColor: null,
-          useCORS: true,
-          scale: 2,
-          logging: false,
-          ignoreElements: (element) => element.classList.contains('tier-actions'), // ✅ omit action buttons
-        });
-
-
-        const dataUrl = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.download = "unite-tier-list.png";
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      } catch (err) {
-        console.error("Save failed:", err);
-        alert("Saving failed — see console for details.");
-      } finally {
-        // ✅ Remove the desktop override after saving
-        document.body.classList.remove("force-desktop");
-      }
+  try {
+    const canvas = await html2canvas(tierList, {
+      backgroundColor: null,
+      useCORS: true,
+      scale: 2,
+      logging: false,
+      ignoreElements: (element) => element.classList.contains('tier-actions'), // omit tier buttons
     });
+
+    const dataUrl = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.download = "unite-tier-list.png";
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (err) {
+    console.error("Save failed:", err);
+    alert("Saving failed — see console for details.");
+  } finally {
+    // Only remove force-desktop if it was applied
+    if (isMobile) {
+      document.body.classList.remove("force-desktop");
+    }
+  }
+});
+
 
     // --- Reset Tier List ---
     document.getElementById('reset').addEventListener('click', () => {
@@ -1104,18 +1135,18 @@
       const newTier = document.createElement('div');
       newTier.className = 'tier';
       newTier.innerHTML = `
-      <div class="tier-label" style="background-color:${color};" data-editable="true">
-        NEW TIER
-        <input type="color" class="color-picker" value="${color}">
-      </div>
-      <div class="tier-content"></div>
-      <div class="tier-actions">
-        <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
-        <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
-        <button class="add-tier">＋</button>
-        <button class="remove-tier">−</button>
-      </div>
-    `;
+        <div class="tier-label" style="background-color:${color};" data-editable="true">
+          NEW TIER
+          <input type="color" class="color-picker" value="${color}">
+        </div>
+        <div class="tier-content"></div>
+        <div class="tier-actions">
+          <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+          <button class="add-tier">＋</button>
+          <button class="remove-tier">−</button>
+        </div>
+      `;
 
       // Insert directly BELOW the clicked tier
       container.insertBefore(newTier, tier.nextElementSibling);
@@ -1195,18 +1226,18 @@
         const tier = document.createElement('div');
         tier.className = 'tier';
         tier.innerHTML = `
-      <div class="tier-label" style="background-color:${t.color};" data-editable="true">
-        ${t.name}
-        <input type="color" class="color-picker" value="${t.color}">
-      </div>
-      <div class="tier-content"></div>
-      <div class="tier-actions">
-        <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
-        <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
-        <button class="add-tier">＋</button>
-        <button class="remove-tier">−</button>
-      </div>
-    `;
+        <div class="tier-label" style="background-color:${t.color};" data-editable="true">
+          ${t.name}
+          <input type="color" class="color-picker" value="${t.color}">
+        </div>
+        <div class="tier-content"></div>
+        <div class="tier-actions">
+          <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+          <button class="add-tier">＋</button>
+          <button class="remove-tier">−</button>
+        </div>
+      `;
 
         const tierContent = tier.querySelector('.tier-content');
         t.pokemon.forEach(p => {
