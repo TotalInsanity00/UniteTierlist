@@ -489,6 +489,15 @@
         overflow-x: hidden !important;
         overflow-y: auto !important;
       }
+
+      @media (max-width: 768px) {
+        .edit-tier-name {
+          display: inline-flex;
+          color: white;
+        }
+      }
+
+
     }
   </style>
 </head>
@@ -593,13 +602,12 @@
 
   <script>
 
-
     const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
       'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
     const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
       'Blaziken', 'Zacian', 'Urshifuss', 'Urshifurs', 'Scizor', 'Tyranitar', 'Buzzwole', 'Azumarill', 'Aegislash', 'Dragonite',
-      'Tsareena', 'Charizard', 'Lucario', 'Machamp', 'Garchomp', 'Mewtwox', 'Charizardx', 'mLucario'];
-    const defenders = ['Ho-Oh', 'Umbreon', 'Lapras', 'Goodra', 'Trevenant', 'Greedent', 'Mamoswine', 'Blastoise', 'Snorlax', 'Crustle', 'Slowbro'];
+      'Tsareena', 'Charizard', 'Lucario', 'Machamp', 'Garchomp', 'Mewtwox', 'Charizardx', 'mLucario', 'dhelimise'];
+    const defenders = ['Ho-Oh', 'Umbreon', 'Lapras', 'Goodra', 'Trevenant', 'Greedent', 'Mamoswine', 'Blastoise', 'Snorlax', 'Crustle', 'Slowbro', 'Vaporeon'];
     const supporters = ['Latias', 'Alcremie', 'Psyduck', 'Comfey', 'Sableye', 'Clefable', 'Hoopa', 'Blissey', 'Eldegoss', 'Mr-Mime', 'Wigglytuff'];
     const speedsters = ['Galarian-Rapidash', 'Scyther', 'Darkrai', 'Meowscarada', 'Leafeon', 'Zoroark', 'Dodrio', 'Zeraora', 'Talonflame', 'Absol', 'Gengar'];
 
@@ -824,55 +832,55 @@
 
     // --- Save Tier List as Image ---
     document.getElementById("save").addEventListener("click", async () => {
-  const tierList = document.querySelector("#tiers-container");
-  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const tierList = document.querySelector("#tiers-container");
+      const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  if (isMobile) {
-    // Temporarily force desktop layout for mobile only
-    document.body.classList.add("force-desktop");
-    await new Promise(r => setTimeout(r, 300)); // Give layout a moment to reflow
-  }
+      if (isMobile) {
+        // Temporarily force desktop layout for mobile only
+        document.body.classList.add("force-desktop");
+        await new Promise(r => setTimeout(r, 300)); // Give layout a moment to reflow
+      }
 
-  await document.fonts.ready;
-  await Promise.all(
-    Array.from(document.images)
-      .filter((img) => !img.complete)
-      .map(
-        (img) =>
-          new Promise((resolve) => (img.onload = img.onerror = resolve))
-      )
-  );
+      await document.fonts.ready;
+      await Promise.all(
+        Array.from(document.images)
+          .filter((img) => !img.complete)
+          .map(
+            (img) =>
+              new Promise((resolve) => (img.onload = img.onerror = resolve))
+          )
+      );
 
-  document.querySelectorAll("img").forEach((img) => {
-    if (!img.crossOrigin) img.crossOrigin = "anonymous";
-  });
+      document.querySelectorAll("img").forEach((img) => {
+        if (!img.crossOrigin) img.crossOrigin = "anonymous";
+      });
 
-  try {
-    const canvas = await html2canvas(tierList, {
-      backgroundColor: null,
-      useCORS: true,
-      scale: 2,
-      logging: false,
-      ignoreElements: (element) => element.classList.contains('tier-actions'), // omit tier buttons
+      try {
+        const canvas = await html2canvas(tierList, {
+          backgroundColor: null,
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          ignoreElements: (element) => element.classList.contains('tier-actions'), // omit tier buttons
+        });
+
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = "unite-tier-list.png";
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (err) {
+        console.error("Save failed:", err);
+        alert("Saving failed — see console for details.");
+      } finally {
+        // Only remove force-desktop if it was applied
+        if (isMobile) {
+          document.body.classList.remove("force-desktop");
+        }
+      }
     });
-
-    const dataUrl = canvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.download = "unite-tier-list.png";
-    link.href = dataUrl;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  } catch (err) {
-    console.error("Save failed:", err);
-    alert("Saving failed — see console for details.");
-  } finally {
-    // Only remove force-desktop if it was applied
-    if (isMobile) {
-      document.body.classList.remove("force-desktop");
-    }
-  }
-});
 
 
     // --- Reset Tier List ---
@@ -1224,7 +1232,7 @@
     // --- Enable safe tier name editing (prevents accidental touches) ---
     function setupSafeTierEditing() {
       document.querySelectorAll('.tier-label').forEach(label => {
-        if (label.dataset.hasEditingSetup) return; // prevent duplicate binding
+        if (label.dataset.hasEditingSetup) return; // prevent duplicates
         label.dataset.hasEditingSetup = "true";
 
         label.contentEditable = "false";
@@ -1243,7 +1251,7 @@
           sel.addRange(range);
         });
 
-        // --- Mobile: long press (600ms) to edit ---
+        // --- Mobile: long press (fallback) ---
         let pressTimer;
         label.addEventListener('touchstart', e => {
           pressTimer = setTimeout(() => {
@@ -1252,10 +1260,9 @@
             label.dataset.editing = "true";
           }, 600);
         });
-
         label.addEventListener('touchend', () => clearTimeout(pressTimer));
 
-        // --- Exit edit mode on blur or Enter ---
+        // --- Exit edit mode ---
         label.addEventListener('blur', () => {
           label.contentEditable = "false";
           label.dataset.editing = "false";
@@ -1269,10 +1276,40 @@
           }
         });
 
-        // --- Stop Pokémon placement while editing ---
+        // --- Prevent Pokémon placement while editing ---
         label.addEventListener('click', e => {
           if (label.dataset.editing === "true") e.stopPropagation();
         });
+
+        // ====================================================
+        // ✅ MOBILE-ONLY EDIT BUTTON (✏️)
+        // ====================================================
+        if (window.innerWidth <= 768) {
+          // remove duplicates
+          label.querySelectorAll('.edit-tier-name').forEach(btn => btn.remove());
+
+          const editBtn = document.createElement('i');
+          editBtn.className = 'fa-solid fa-pen edit-tier-name';
+          editBtn.style.marginLeft = "6px";
+          editBtn.style.fontSize = "12px";
+          editBtn.style.background = "#333";
+          editBtn.style.padding = "3px";
+          editBtn.style.borderRadius = "4px";
+          editBtn.style.cursor = "pointer";
+          editBtn.style.display = "inline-flex";
+          editBtn.style.alignItems = "center";
+          editBtn.style.justifyContent = "center";
+
+          label.appendChild(editBtn);
+
+          editBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            label.contentEditable = "true";
+            label.focus();
+            label.dataset.editing = "true";
+          });
+        }
+        // ====================================================
       });
     }
 
