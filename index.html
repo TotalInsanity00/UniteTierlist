@@ -499,10 +499,57 @@
 
 
     }
+
+    .top-nav {
+      position: fixed;
+      /* <— was sticky before */
+      top: 0;
+      left: 0;
+      right: 0;
+
+      background: #111;
+      border-bottom: 2px solid #222;
+
+      padding: 12px 20px;
+
+      display: flex;
+      gap: 20px;
+      align-items: center;
+
+      z-index: 999;
+      /* stays above the content */
+    }
+
+    .top-nav a {
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: #333;
+      white-space: nowrap;
+      /* stops them from stretching */
+    }
+
+    .top-nav a:hover {
+      background: #444;
+    }
+
+    body {
+      padding-top: 60px;
+      /* adjust to match your nav height */
+    }
   </style>
 </head>
 
 <body>
+
+  <div class="top-nav">
+    <a href="index.html">Tier List</a>
+    <a href="teamBuilder.html">Team Builder</a>
+  </div>
+
 
   <div class="tier-list" id="tierList">
     <div class="save-reset">
@@ -606,7 +653,7 @@
       'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
     const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
       'Blaziken', 'Zacian', 'Urshifuss', 'Urshifurs', 'Scizor', 'Tyranitar', 'Buzzwole', 'Azumarill', 'Aegislash', 'Dragonite',
-      'Tsareena', 'Charizard', 'Lucario', 'Machamp', 'Garchomp', 'Mewtwox', 'Charizardx', 'mLucario', 'dhelimise'];
+      'Tsareena', 'Charizard', 'Lucario', 'Machamp', 'Garchomp', 'Mewtwox', 'Charizardx', 'mLucario', 'dhelmise'];
     const defenders = ['Ho-Oh', 'Umbreon', 'Lapras', 'Goodra', 'Trevenant', 'Greedent', 'Mamoswine', 'Blastoise', 'Snorlax', 'Crustle', 'Slowbro', 'Vaporeon'];
     const supporters = ['Latias', 'Alcremie', 'Psyduck', 'Comfey', 'Sableye', 'Clefable', 'Hoopa', 'Blissey', 'Eldegoss', 'Mr-Mime', 'Wigglytuff'];
     const speedsters = ['Galarian-Rapidash', 'Scyther', 'Darkrai', 'Meowscarada', 'Leafeon', 'Zoroark', 'Dodrio', 'Zeraora', 'Talonflame', 'Absol', 'Gengar'];
@@ -1232,37 +1279,62 @@
     // --- Enable safe tier name editing (prevents accidental touches) ---
     function setupSafeTierEditing() {
       document.querySelectorAll('.tier-label').forEach(label => {
-        if (label.dataset.hasEditingSetup) return; // prevent duplicates
+        if (label.dataset.hasEditingSetup) return;
         label.dataset.hasEditingSetup = "true";
+
+        const isMobile = window.innerWidth <= 768;
 
         label.contentEditable = "false";
 
-        // --- Desktop: double-click to edit ---
-        label.addEventListener('dblclick', e => {
-          e.stopPropagation();
-          label.contentEditable = "true";
-          label.focus();
-          label.dataset.editing = "true";
-
-          const range = document.createRange();
-          range.selectNodeContents(label);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-        });
-
-        // --- Mobile: long press (fallback) ---
-        let pressTimer;
-        label.addEventListener('touchstart', e => {
-          pressTimer = setTimeout(() => {
+        // ===== DESKTOP =====
+        if (!isMobile) {
+          label.addEventListener('dblclick', e => {
+            e.stopPropagation();
             label.contentEditable = "true";
             label.focus();
             label.dataset.editing = "true";
-          }, 600);
-        });
-        label.addEventListener('touchend', () => clearTimeout(pressTimer));
 
-        // --- Exit edit mode ---
+            const range = document.createRange();
+            range.selectNodeContents(label);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          });
+        }
+
+        // ===== MOBILE =====
+        if (isMobile) {
+          // tap to rename
+          label.addEventListener('click', e => {
+            e.stopPropagation();
+            label.contentEditable = "true";
+            label.focus();
+            label.dataset.editing = "true";
+          });
+
+          // Add a big, easy-to-tap “Rename” button
+          const renameBtn = document.createElement("button");
+          renameBtn.textContent = "Rename";
+          renameBtn.style.marginLeft = "8px";
+          renameBtn.style.fontSize = "10px";
+          renameBtn.style.padding = "2px 6px";
+          renameBtn.style.borderRadius = "4px";
+          renameBtn.style.background = "#444";
+          renameBtn.style.color = "white";
+          renameBtn.style.border = "1px solid #666";
+          renameBtn.style.cursor = "pointer";
+
+          renameBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            label.contentEditable = "true";
+            label.focus();
+            label.dataset.editing = "true";
+          });
+
+          label.appendChild(renameBtn);
+        }
+
+        // ===== Finish editing =====
         label.addEventListener('blur', () => {
           label.contentEditable = "false";
           label.dataset.editing = "false";
@@ -1276,44 +1348,12 @@
           }
         });
 
-        // --- Prevent Pokémon placement while editing ---
+        // prevent dragging / tier placement while editing
         label.addEventListener('click', e => {
           if (label.dataset.editing === "true") e.stopPropagation();
         });
-
-        // ====================================================
-        // ✅ MOBILE-ONLY EDIT BUTTON (✏️)
-        // ====================================================
-        if (window.innerWidth <= 768) {
-          // remove duplicates
-          label.querySelectorAll('.edit-tier-name').forEach(btn => btn.remove());
-
-          const editBtn = document.createElement('i');
-          editBtn.className = 'fa-solid fa-pen edit-tier-name';
-          editBtn.style.marginLeft = "6px";
-          editBtn.style.fontSize = "12px";
-          editBtn.style.background = "#333";
-          editBtn.style.padding = "3px";
-          editBtn.style.borderRadius = "4px";
-          editBtn.style.cursor = "pointer";
-          editBtn.style.display = "inline-flex";
-          editBtn.style.alignItems = "center";
-          editBtn.style.justifyContent = "center";
-
-          label.appendChild(editBtn);
-
-          editBtn.addEventListener('click', e => {
-            e.stopPropagation();
-            label.contentEditable = "true";
-            label.focus();
-            label.dataset.editing = "true";
-          });
-        }
-        // ====================================================
       });
     }
-
-
     // Run after tiers are loaded
     setupSafeTierEditing();
 
