@@ -264,6 +264,13 @@
         flex: 0 0 60px;
       }
 
+      .team-row {
+        display: flex !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        flex-wrap: nowrap !important;
+        /* Keeps everything on ONE line */
+      }
 
       /* FORCE DESKTOP FOR SCREENSHOT */
       body.force-desktop .pokemon-panel {
@@ -321,16 +328,17 @@
 
       <div class="section-title">Team</div>
 
-      <div class="slot-row">
+      <div class="slot-row team-row">
         <div class="slot" data-slot="team0"></div>
         <div class="slot" data-slot="team1"></div>
-      </div>
-
-      <div class="slot-row">
         <div class="slot" data-slot="team2"></div>
+        <div class="slot" data-slot="team3"></div>
+        <div class="slot" data-slot="team4"></div>
       </div>
-
-      <div class="slot-row">
+      <div class="slot-row team-row">
+        <div class="slot" data-slot="team0"></div>
+        <div class="slot" data-slot="team1"></div>
+        <div class="slot" data-slot="team2"></div>
         <div class="slot" data-slot="team3"></div>
         <div class="slot" data-slot="team4"></div>
       </div>
@@ -521,11 +529,25 @@
       }
 
       try {
+        // TEMP widen + scale for full capture
+        const originalWidth = target.style.width;
+        target.style.width = "120%";
+        target.style.transform = "scale(0.9)";
+        target.style.transformOrigin = "top left";
+
         const canvas = await html2canvas(target, {
           backgroundColor: "#111",
+          useCORS: true,
           scale: 2,
-          ignoreElements: el => el.id === "save" || el.id === "reset"
+          logging: false,
+          ignoreElements: (el) =>
+            el.id === "save" ||
+            el.id === "reset"
         });
+
+        // RESTORE after render
+        target.style.width = originalWidth;
+        target.style.transform = "";
 
         const link = document.createElement("a");
         link.download = "team_builder.png";
