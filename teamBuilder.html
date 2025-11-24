@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Unite Team Builder</title>
 
   <!-- Icons + Fonts + html2canvas -->
@@ -149,6 +152,7 @@
       border-radius: 50%;
       z-index: -1;
     }
+
     .pokemon-icon::after {
       content: "";
       position: absolute;
@@ -158,11 +162,25 @@
       z-index: -1;
     }
 
-    .attackers::before { background: linear-gradient(45deg, #ffb7b7, #ff3729); }
-    .allrounders::before { background: linear-gradient(45deg, #c587f8, #671faa); }
-    .defenders::before { background: linear-gradient(45deg, #2d5241, #20e973); }
-    .supporters::before { background: linear-gradient(45deg, #fcf7bd, #face08); }
-    .speedsters::before { background: linear-gradient(45deg, #90c2ff, #103cff); }
+    .attackers::before {
+      background: linear-gradient(45deg, #ffb7b7, #ff3729);
+    }
+
+    .allrounders::before {
+      background: linear-gradient(45deg, #c587f8, #671faa);
+    }
+
+    .defenders::before {
+      background: linear-gradient(45deg, #2d5241, #20e973);
+    }
+
+    .supporters::before {
+      background: linear-gradient(45deg, #fcf7bd, #face08);
+    }
+
+    .speedsters::before {
+      background: linear-gradient(45deg, #90c2ff, #103cff);
+    }
 
     /* Highlight selected on mobile */
     .selected-touch {
@@ -174,13 +192,36 @@
     @media (max-width: 768px) {
 
       body {
-        flex-direction: column;
-        height: auto;
+        overflow: visible !important;
       }
 
-      .layout {
-        flex-direction: column;
-        height: auto;
+      body,
+      .main-layout,
+      .left-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      body {
+        padding: 0 !important;
+        margin: 0 !important;
+        transform: none !important;
+        zoom: 1 !important;
+      }
+
+      .left-panel {
+        padding: 15px !important;
+        font-size: 1.2rem;
+        /* larger text */
+      }
+
+      .slot {
+        width: 85px;
+        height: 85px;
+      }
+
+      .section-title {
+        font-size: 1.4rem;
       }
 
       .pokemon-panel {
@@ -194,33 +235,49 @@
         border-top: 3px solid #333;
         padding: 10px;
         z-index: 999;
+        padding-bottom: env(safe-area-inset-bottom);
       }
 
       .character-grid {
         display: flex;
         flex-wrap: nowrap;
-        overflow-x: auto;
-        overflow-y: hidden;
         gap: 8px;
+        padding: 6px;
+        width: 100%;
+        overflow-x: scroll;
+        /* <-- REQUIRED FIX */
+        overflow-y: hidden;
+
+        -webkit-overflow-scrolling: touch;
+        /* <-- REQUIRED FIX */
+
+        scrollbar-width: none;
+        touch-action: pan-x;
+
+      }
+
+      .character-grid::-webkit-scrollbar {
+        display: none;
       }
 
       .pokemon-icon {
         flex: 0 0 60px;
       }
-    }
 
-    /* FORCE DESKTOP FOR SCREENSHOT */
-    body.force-desktop .pokemon-panel {
-      position: static !important;
-      width: 40% !important;
-      height: auto !important;
-      border-left: 3px solid #333 !important;
-      border-top: none !important;
-    }
 
-    body.force-desktop .character-grid {
-      flex-wrap: wrap !important;
-      overflow: auto !important;
+      /* FORCE DESKTOP FOR SCREENSHOT */
+      body.force-desktop .pokemon-panel {
+        position: static !important;
+        width: 40% !important;
+        height: auto !important;
+        border-left: 3px solid #333 !important;
+        border-top: none !important;
+      }
+
+      body.force-desktop .character-grid {
+        flex-wrap: wrap !important;
+        overflow: auto !important;
+      }
     }
   </style>
 </head>
@@ -288,199 +345,200 @@
 
   </div>
 
-<script>
-/* ——————————————————————————————————————————
-    POKÉMON LISTS
-—————————————————————————————————————————— */
-const attackers = ['Latios','Alolan-Raichu','Armarouge','Miraidon','Mewtwoy','Inteleon','Chandelure','Dragapult','Mew','Glaceon','Delphox','Espeon','Duraludon','Decidueye','Sylveon','Gardevoir','Pikachu','Greninja','Venusaur','Alolan-Ninetales','Cramorant','Cinderace'];
-const allrounders = ['Empoleon','Pawmot','Suicune','Tinkaton','Ceruledge','Falinks','Gyarados','Metagross','Mimikyu','Blaziken','Zacian','Urshifuss','Urshifurs','Scizor','Tyranitar','Buzzwole','Azumarill','Aegislash','Dragonite','Tsareena','Charizard','Lucario','Machamp','Garchomp','Mewtwox','Charizardx','mLucario','dhelmise'];
-const defenders = ['Ho-Oh','Umbreon','Lapras','Goodra','Trevenant','Greedent','Mamoswine','Blastoise','Snorlax','Crustle','Slowbro','Vaporeon'];
-const supporters = ['Latias','Alcremie','Psyduck','Comfey','Sableye','Clefable','Hoopa','Blissey','Eldegoss','Mr-Mime','Wigglytuff'];
-const speedsters = ['Galarian-Rapidash','Scyther','Darkrai','Meowscarada','Leafeon','Zoroark','Dodrio','Zeraora','Talonflame','Absol','Gengar'];
+  <script>
+    /* ——————————————————————————————————————————
+        POKÉMON LISTS
+    —————————————————————————————————————————— */
+    const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure', 'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
+    const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu', 'Blaziken', 'Zacian', 'Urshifuss', 'Urshifurs', 'Scizor', 'Tyranitar', 'Buzzwole', 'Azumarill', 'Aegislash', 'Dragonite', 'Tsareena', 'Charizard', 'Lucario', 'Machamp', 'Garchomp', 'Mewtwox', 'Charizardx', 'mLucario', 'dhelmise'];
+    const defenders = ['Ho-Oh', 'Umbreon', 'Lapras', 'Goodra', 'Trevenant', 'Greedent', 'Mamoswine', 'Blastoise', 'Snorlax', 'Crustle', 'Slowbro', 'Vaporeon'];
+    const supporters = ['Latias', 'Alcremie', 'Psyduck', 'Comfey', 'Sableye', 'Clefable', 'Hoopa', 'Blissey', 'Eldegoss', 'Mr-Mime', 'Wigglytuff'];
+    const speedsters = ['Galarian-Rapidash', 'Scyther', 'Darkrai', 'Meowscarada', 'Leafeon', 'Zoroark', 'Dodrio', 'Zeraora', 'Talonflame', 'Absol', 'Gengar'];
 
-const allPokemon = [...attackers, ...allrounders, ...defenders, ...supporters, ...speedsters];
+    const allPokemon = [...attackers, ...allrounders, ...defenders, ...supporters, ...speedsters];
 
-const grid = document.getElementById("character-grid");
-const slots = document.querySelectorAll(".slot");
+    const grid = document.getElementById("character-grid");
+    const slots = document.querySelectorAll(".slot");
 
-let selectedPokemon = null;
+    let selectedPokemon = null;
 
-/* ——————————————————————————————
-    BUILD GRID
-—————————————————————————————— */
-function buildGrid() {
-  allPokemon.forEach(name => {
-    const lower = name.toLowerCase();
-    const div = document.createElement("div");
+    /* ——————————————————————————————
+        BUILD GRID
+    —————————————————————————————— */
+    function buildGrid() {
+      allPokemon.forEach(name => {
+        const lower = name.toLowerCase();
+        const div = document.createElement("div");
 
-    let roleClass = "";
-    if (attackers.includes(name)) roleClass = "attackers";
-    if (allrounders.includes(name)) roleClass = "allrounders";
-    if (defenders.includes(name)) roleClass = "defenders";
-    if (supporters.includes(name)) roleClass = "supporters";
-    if (speedsters.includes(name)) roleClass = "speedsters";
+        let roleClass = "";
+        if (attackers.includes(name)) roleClass = "attackers";
+        if (allrounders.includes(name)) roleClass = "allrounders";
+        if (defenders.includes(name)) roleClass = "defenders";
+        if (supporters.includes(name)) roleClass = "supporters";
+        if (speedsters.includes(name)) roleClass = "speedsters";
 
-    div.className = `pokemon-icon ${roleClass}`;
-    div.dataset.name = name;
-    div.draggable = true;
+        div.className = `pokemon-icon ${roleClass}`;
+        div.dataset.name = name;
+        div.draggable = true;
 
-    div.innerHTML = `<img src="./pokemon/unite_${lower}.png" alt="${name}">`;
+        div.innerHTML = `<img src="./pokemon/unite_${lower}.png" alt="${name}">`;
 
-    div.addEventListener("dragstart", () => div.classList.add("dragging"));
-    div.addEventListener("dragend", () => div.classList.remove("dragging"));
-    div.addEventListener("click", () => handleSelect(div));
+        div.addEventListener("dragstart", () => div.classList.add("dragging"));
+        div.addEventListener("dragend", () => div.classList.remove("dragging"));
+        div.addEventListener("click", () => handleSelect(div));
 
-    grid.appendChild(div);
-  });
-}
-
-buildGrid();
-
-/* ——————————————————————————————
-    TOUCH SELECT
-—————————————————————————————— */
-function handleSelect(icon) {
-  if (selectedPokemon === icon) {
-    icon.classList.remove("selected-touch");
-    selectedPokemon = null;
-    return;
-  }
-  if (selectedPokemon) selectedPokemon.classList.remove("selected-touch");
-
-  selectedPokemon = icon;
-  icon.classList.add("selected-touch");
-}
-
-/* ——————————————————————————————
-    SLOT CLICK
-—————————————————————————————— */
-slots.forEach(slot => {
-  slot.addEventListener("click", () => {
-    if (!selectedPokemon) return;
-    placePokemon(slot, selectedPokemon.dataset.name);
-    selectedPokemon.classList.remove("selected-touch");
-    selectedPokemon = null;
-  });
-});
-
-/* ——————————————————————————————
-    PLACE / SWAP
-—————————————————————————————— */
-function placePokemon(slot, name) {
-  const existing = slot.querySelector("img");
-
-  if (existing) restoreToGrid(existing.alt);
-
-  slot.innerHTML = `<img src="./pokemon/unite_${name.toLowerCase()}.png" alt="${name}">`;
-
-  saveState();
-}
-
-/* Return Pokémon to grid */
-function restoreToGrid(name) {
-  const exists = [...grid.children].find(i => i.dataset.name === name);
-  if (exists) return;
-  // recreate icon
-  const div = document.createElement("div");
-  div.className = "pokemon-icon";
-  div.dataset.name = name;
-  div.innerHTML = `<img src="./pokemon/unite_${name.toLowerCase()}.png">`;
-  grid.appendChild(div);
-}
-
-/* ——————————————————————————————
-    DRAG & DROP
-—————————————————————————————— */
-slots.forEach(slot => {
-  slot.addEventListener("dragover", e => {
-    e.preventDefault();
-    slot.style.borderColor = "yellow";
-  });
-
-  slot.addEventListener("dragleave", () => slot.style.borderColor = "white");
-
-  slot.addEventListener("drop", () => {
-    slot.style.borderColor = "white";
-    const drag = document.querySelector(".dragging");
-    if (!drag) return;
-    placePokemon(slot, drag.dataset.name);
-  });
-});
-
-/* ——————————————————————————————
-    SAVE / LOAD
-—————————————————————————————— */
-function saveState() {
-  const data = {
-    firstPick: document.getElementById("firstPick").checked,
-    slots: {}
-  };
-  slots.forEach(slot => {
-    const img = slot.querySelector("img");
-    data.slots[slot.dataset.slot] = img ? img.alt : null;
-  });
-  localStorage.setItem("teamBuilder", JSON.stringify(data));
-}
-
-function loadState() {
-  const saved = localStorage.getItem("teamBuilder");
-  if (!saved) return;
-
-  const data = JSON.parse(saved);
-  document.getElementById("firstPick").checked = data.firstPick;
-
-  for (const key in data.slots) {
-    const slot = document.querySelector(`.slot[data-slot="${key}"]`);
-    const name = data.slots[key];
-
-    slot.innerHTML = "";
-    if (name) {
-      slot.innerHTML = `<img src="./pokemon/unite_${name.toLowerCase()}.png" alt="${name}">`;
+        grid.appendChild(div);
+      });
     }
-  }
-}
 
-loadState();
+    buildGrid();
 
-/* ——————————————————————————————
-    RESET
-—————————————————————————————— */
-document.getElementById("reset").addEventListener("click", () => {
-  slots.forEach(slot => slot.innerHTML = "");
-  document.getElementById("firstPick").checked = false;
-  saveState();
-});
+    /* ——————————————————————————————
+        TOUCH SELECT
+    —————————————————————————————— */
+    function handleSelect(icon) {
+      if (selectedPokemon === icon) {
+        icon.classList.remove("selected-touch");
+        selectedPokemon = null;
+        return;
+      }
+      if (selectedPokemon) selectedPokemon.classList.remove("selected-touch");
 
-/* ——————————————————————————————
-    SAVE IMAGE
-—————————————————————————————— */
-document.getElementById("save").addEventListener("click", async () => {
-  const target = document.querySelector(".left-panel");
-  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+      selectedPokemon = icon;
+      icon.classList.add("selected-touch");
+    }
 
-  if (isMobile) {
-    document.body.classList.add("force-desktop");
-    await new Promise(r => setTimeout(r, 300));
-  }
-
-  try {
-    const canvas = await html2canvas(target, {
-      backgroundColor: "#111",
-      scale: 2,
-      ignoreElements: el => el.id === "save" || el.id === "reset"
+    /* ——————————————————————————————
+        SLOT CLICK
+    —————————————————————————————— */
+    slots.forEach(slot => {
+      slot.addEventListener("click", () => {
+        if (!selectedPokemon) return;
+        placePokemon(slot, selectedPokemon.dataset.name);
+        selectedPokemon.classList.remove("selected-touch");
+        selectedPokemon = null;
+      });
     });
 
-    const link = document.createElement("a");
-    link.download = "team_builder.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  } catch (err) {
-    alert("Save failed.");
-  }
+    /* ——————————————————————————————
+        PLACE / SWAP
+    —————————————————————————————— */
+    function placePokemon(slot, name) {
+      const existing = slot.querySelector("img");
 
-  if (isMobile) document.body.classList.remove("force-desktop");
-});
-</script>
+      if (existing) restoreToGrid(existing.alt);
+
+      slot.innerHTML = `<img src="./pokemon/unite_${name.toLowerCase()}.png" alt="${name}">`;
+
+      saveState();
+    }
+
+    /* Return Pokémon to grid */
+    function restoreToGrid(name) {
+      const exists = [...grid.children].find(i => i.dataset.name === name);
+      if (exists) return;
+      // recreate icon
+      const div = document.createElement("div");
+      div.className = "pokemon-icon";
+      div.dataset.name = name;
+      div.innerHTML = `<img src="./pokemon/unite_${name.toLowerCase()}.png">`;
+      grid.appendChild(div);
+    }
+
+    /* ——————————————————————————————
+        DRAG & DROP
+    —————————————————————————————— */
+    slots.forEach(slot => {
+      slot.addEventListener("dragover", e => {
+        e.preventDefault();
+        slot.style.borderColor = "yellow";
+      });
+
+      slot.addEventListener("dragleave", () => slot.style.borderColor = "white");
+
+      slot.addEventListener("drop", () => {
+        slot.style.borderColor = "white";
+        const drag = document.querySelector(".dragging");
+        if (!drag) return;
+        placePokemon(slot, drag.dataset.name);
+      });
+    });
+
+    /* ——————————————————————————————
+        SAVE / LOAD
+    —————————————————————————————— */
+    function saveState() {
+      const data = {
+        firstPick: document.getElementById("firstPick").checked,
+        slots: {}
+      };
+      slots.forEach(slot => {
+        const img = slot.querySelector("img");
+        data.slots[slot.dataset.slot] = img ? img.alt : null;
+      });
+      localStorage.setItem("teamBuilder", JSON.stringify(data));
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem("teamBuilder");
+      if (!saved) return;
+
+      const data = JSON.parse(saved);
+      document.getElementById("firstPick").checked = data.firstPick;
+
+      for (const key in data.slots) {
+        const slot = document.querySelector(`.slot[data-slot="${key}"]`);
+        const name = data.slots[key];
+
+        slot.innerHTML = "";
+        if (name) {
+          slot.innerHTML = `<img src="./pokemon/unite_${name.toLowerCase()}.png" alt="${name}">`;
+        }
+      }
+    }
+
+    loadState();
+
+    /* ——————————————————————————————
+        RESET
+    —————————————————————————————— */
+    document.getElementById("reset").addEventListener("click", () => {
+      slots.forEach(slot => slot.innerHTML = "");
+      document.getElementById("firstPick").checked = false;
+      saveState();
+    });
+
+    /* ——————————————————————————————
+        SAVE IMAGE
+    —————————————————————————————— */
+    document.getElementById("save").addEventListener("click", async () => {
+      const target = document.querySelector(".left-panel");
+      const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        document.body.classList.add("force-desktop");
+        await new Promise(r => setTimeout(r, 300));
+      }
+
+      try {
+        const canvas = await html2canvas(target, {
+          backgroundColor: "#111",
+          scale: 2,
+          ignoreElements: el => el.id === "save" || el.id === "reset"
+        });
+
+        const link = document.createElement("a");
+        link.download = "team_builder.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      } catch (err) {
+        alert("Save failed.");
+      }
+
+      if (isMobile) document.body.classList.remove("force-desktop");
+    });
+  </script>
 
 </body>
+
 </html>
