@@ -188,145 +188,140 @@
       transform: scale(1.1);
     }
 
+
+    .team-wrapper {
+      width: 100%;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .team-row {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .team-row-bottom {
+      /* Shift inward so the two circles sit between the top row gaps */
+      width: calc(75px * 2 + 18px);
+      /* exact width of the two slots + gap */
+      margin-left: auto;
+      margin-right: auto;
+    }
+
     /* ---------- MOBILE LAYOUT ---------- */
     @media (max-width: 768px) {
 
       body {
         overflow: visible !important;
+        padding: 0;
+        margin: 0;
+        flex-direction: column;
+        max-height: max-content;
       }
 
-      body,
-      .main-layout,
+      .layout {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+      }
+
       .left-panel {
         width: 100% !important;
-        max-width: 100% !important;
-      }
-
-      body {
-        padding: 0 !important;
-        margin: 0 !important;
-        transform: none !important;
-        zoom: 1 !important;
-      }
-
-      .left-panel {
         padding: 15px !important;
-        font-size: 1.2rem;
-        /* larger text */
+        padding-bottom: 190px !important;
+        /* room for Pokémon selector */
       }
 
-      .slot {
-        width: 85px;
-        height: 85px;
+      /* ===== BANS stay exactly like PC ===== */
+      .slot-row {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: nowrap;
       }
 
-      .section-title {
-        font-size: 1.4rem;
+      /* 2 rows of bans preserve shape */
+      .slot-row:nth-of-type(2) {
+        margin-top: 10px;
       }
 
+
+
+      .team-row .slot {
+        flex: 0 0 auto;
+        /* prevent shrinking */
+      }
+
+      /* ===== Pokémon Bottom Selector ===== */
+      /* Fix 1: Proper bottom bar height */
       .pokemon-panel {
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 150px;
+        height: 90px;
+        /* smaller = no scrolling needed */
         background: #1a1a1a;
-        border-left: none;
         border-top: 3px solid #333;
-        padding: 10px;
         z-index: 999;
-        padding-bottom: env(safe-area-inset-bottom);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
 
       .character-grid {
         display: flex;
         flex-wrap: nowrap;
-        gap: 8px;
-        padding: 6px;
-        width: 100%;
-        overflow-x: scroll;
-        /* <-- REQUIRED FIX */
+        overflow-x: auto;
         overflow-y: hidden;
+        /* prevents vertical cut-off */
+        gap: 10px;
+        width: 100%;
+        height: 100%;
+
+        align-items: center;
+        /* vertically centers icons */
 
         -webkit-overflow-scrolling: touch;
-        /* <-- REQUIRED FIX */
-
         scrollbar-width: none;
-        touch-action: pan-x;
-
       }
+
 
       .character-grid::-webkit-scrollbar {
         display: none;
       }
 
       .pokemon-icon {
-        flex: 0 0 60px;
+        flex: 0 0 55px !important;
+        width: 55px !important;
+        height: 55px !important;
+        padding: 2px;
       }
 
-      .team-row {
-        display: inline-flex !important;
-        /* keeps row only as wide as its content */
-        justify-content: center !important;
-        gap: 12px !important;
-        flex-wrap: wrap !important;
-
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        max-width: 100% !important;
-        max-height: 100% !important;
-        /* ensures it doesn't overflow the page */
+      .left-panel {
+        padding-bottom: 130px !important;
       }
 
-      .team-row::-webkit-scrollbar {
-        display: none;
-      }
-
-      /* Center the row block itself */
-      .slot-row.team-row {
-        width: 100%;
-        display: flex !important;
-        justify-content: center !important;
-      }
-
-      /* Make TEAM row scrollable and centered */
-      .team-row-wrapper {
-        width: 150%;
+      .team-grid .slot {
+        width: 80px;
+        height: 80px;
+        border: 3px solid white;
+        border-radius: 50%;
+        background: #222;
         display: flex;
+        align-items: center;
         justify-content: center;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
       }
 
-      .team-row-wrapper::-webkit-scrollbar {
-        display: none;
+      .team-grid .empty {
+        width: 80px;
+        height: 80px;
+        visibility: hidden;
+        /* keeps spacing but invisible */
       }
 
-      /* The actual row should NOT stretch */
-      .team-row {
-        display: inline-flex;
-        gap: 12px;
-        flex-wrap: nowrap;
-      }
-
-      /* FORCE DESKTOP FOR SCREENSHOT */
-      body.force-desktop .pokemon-panel {
-        position: static !important;
-        width: 40% !important;
-        height: auto !important;
-        border-left: 3px solid #333 !important;
-        border-top: none !important;
-      }
-
-      body.force-desktop .character-grid {
-        flex-wrap: wrap !important;
-        overflow: auto !important;
-      }
     }
   </style>
 </head>
@@ -370,21 +365,25 @@
 
       <div class="section-title">Team</div>
 
-      <div class="team-row-wrapper">
-        <div class="slot-row team-row">
+      <div class="team-wrapper">
+
+        <div class="team-row team-row-top">
           <div class="slot" data-slot="team0"></div>
           <div class="slot" data-slot="team1"></div>
           <div class="slot" data-slot="team2"></div>
+        </div>
+
+        <div class="team-row team-row-bottom">
           <div class="slot" data-slot="team3"></div>
           <div class="slot" data-slot="team4"></div>
         </div>
+
       </div>
 
     </div>
 
     <!-- RIGHT PANEL -->
     <div class="pokemon-panel">
-      <div class="section-title">Pokémon</div>
       <div class="character-grid" id="character-grid"></div>
     </div>
 
