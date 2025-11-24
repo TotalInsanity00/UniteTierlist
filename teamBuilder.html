@@ -212,34 +212,58 @@
         height: auto;
       }
 
-      .main-layout {
-        flex-direction: column;
-        height: auto;
+      .tier-list {
+        flex: none;
+        padding-bottom: 150px;
       }
 
-      .pokemon-panel {
+      .side-panel {
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
         height: 140px;
-        border-left: none;
+        background-color: #1a1a1a;
         border-top: 3px solid #333;
-        padding: 10px;
+        border-left: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        z-index: 50;
+        padding: 5px;
+      }
+
+      .character-preview {
+        display: none;
       }
 
       .character-grid {
-        flex-direction: row;
-        flex-wrap: nowrap;
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: none;
         overflow-x: auto;
         overflow-y: hidden;
+        white-space: nowrap;
+        width: 100%;
+        padding: 5px;
         gap: 8px;
-        height: 100%;
+        justify-items: start;
+        scrollbar-width: none;
+      }
+
+      .character-grid::-webkit-scrollbar {
+        display: none;
       }
 
       .pokemon-icon {
+        flex: 0 0 auto;
         width: 55px;
         height: 55px;
+      }
+
+      .edit-icon {
+        display: flex;
       }
     }
 
