@@ -4,9 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Unite Team Builder</title>
+
+  <!-- Icons + Fonts + html2canvas -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
   <style>
     body {
       margin: 0;
@@ -19,27 +22,48 @@
       overflow: hidden;
     }
 
-    /* Left Panel */
+    /* ---------- TOP NAV ---------- */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #111;
+      border-bottom: 2px solid #222;
+      padding: 12px 20px;
+      display: flex;
+      gap: 20px;
+      z-index: 999;
+    }
+
+    .top-nav a {
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: #333;
+      white-space: nowrap;
+    }
+
+    .top-nav a:hover {
+      background: #444;
+    }
+
+    /* ---------- MAIN LAYOUT ---------- */
+    .main-layout {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      width: 100%;
+      padding-top: 60px;
+    }
+
+    /* ---------- LEFT PANEL ---------- */
     .left-panel {
       width: 55%;
       padding: 20px;
       overflow-y: auto;
-    }
-
-    /* Right big box */
-    .right-box {
-      width: 45%;
-      border-left: 3px solid #333;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    .big-box {
-      width: 100%;
-      height: 100%;
-      border: 3px solid white;
-      border-radius: 10px;
-      box-sizing: border-box;
     }
 
     .button-row {
@@ -62,7 +86,6 @@
       background: #444;
     }
 
-    /* Drag slots */
     .slot-row {
       display: flex;
       justify-content: center;
@@ -80,12 +103,18 @@
       justify-content: center;
       overflow: hidden;
       background: #222;
+      position: relative;
+      cursor: pointer;
     }
 
     .slot img {
       width: 100%;
       height: 100%;
       object-fit: contain;
+    }
+
+    .slot.dragover {
+      border-color: yellow;
     }
 
     .section-title {
@@ -95,14 +124,21 @@
       font-weight: bold;
     }
 
-    /* Pokémon grid on bottom */
+    /* ---------- RIGHT PANEL ---------- */
+    .pokemon-panel {
+      width: 45%;
+      padding: 20px;
+      border-left: 3px solid #333;
+      overflow: hidden;
+    }
+
     .character-grid {
-      margin-top: 30px;
+      margin-top: 20px;
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       overflow-y: auto;
-      height: 40vh;
+      height: calc(100% - 40px);
       padding-right: 5px;
     }
 
@@ -110,9 +146,9 @@
       width: 55px;
       height: 55px;
       border-radius: 50%;
-      position: relative;
-      cursor: grab;
       padding: 3px;
+      cursor: pointer;
+      position: relative;
       flex: 0 0 auto;
     }
 
@@ -125,13 +161,12 @@
       pointer-events: none;
     }
 
+    /* Gradient role rings */
     .pokemon-icon::before {
       content: "";
       position: absolute;
       inset: -2px;
-      /* slightly bigger to simulate border */
       border-radius: 50%;
-      background: linear-gradient(45deg, #ffb7b7, #ff3729);
       z-index: -1;
     }
 
@@ -139,7 +174,6 @@
       content: "";
       position: absolute;
       inset: 2px;
-      /* inner cutoff */
       background: #272727;
       border-radius: 50%;
       z-index: -1;
@@ -165,123 +199,84 @@
       background: linear-gradient(45deg, #90c2ff, #103cff);
     }
 
-    .slot.dragover {
-      border-color: yellow;
+    /* Touch selection highlight */
+    .selected-touch {
+      outline: 3px solid #ffd700;
+      transform: scale(1.1);
     }
 
-    .main-layout {
-      display: flex;
-      flex-direction: row;
-      height: 100vh;
-      width: 100%;
-    }
-
-    /* RIGHT SIDE */
-    .pokemon-panel {
-      width: 45%;
-      /* matches left-panel 55% */
-      max-width: none;
-      flex: 1;
-      /* makes it stretch automatically */
-    }
-
-    .character-grid {
-      flex: 1;
-      width: 100%;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      overflow-y: auto;
-      padding-right: 10px;
-    }
-
-    /* MOBILE SCROLL FIX */
-     @media (max-width: 768px) {
+    /* ---------- MOBILE BEHAVIOR ---------- */
+    @media (max-width: 768px) {
       body {
         flex-direction: column;
         height: auto;
       }
 
-      .tier-list {
-        flex: none;
-        padding-bottom: 150px;
+      .main-layout {
+        flex-direction: column;
+        height: auto;
       }
 
-      .side-panel {
+      .pokemon-panel {
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
         height: 140px;
-        background-color: #1a1a1a;
-        border-top: 3px solid #333;
         border-left: none;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        z-index: 50;
-        padding: 5px;
-      }
-
-      .character-preview {
-        display: none;
+        border-top: 3px solid #333;
+        padding: 10px;
       }
 
       .character-grid {
-        display: grid;
-        grid-auto-flow: column;
-        grid-template-columns: none;
+        flex-direction: row;
+        flex-wrap: nowrap;
         overflow-x: auto;
         overflow-y: hidden;
-        white-space: nowrap;
-        width: 100%;
-        padding: 5px;
         gap: 8px;
-        justify-items: start;
-        scrollbar-width: none;
-      }
-
-      .character-grid::-webkit-scrollbar {
-        display: none;
+        height: 100%;
       }
 
       .pokemon-icon {
-        flex: 0 0 auto;
         width: 55px;
         height: 55px;
       }
-
-      .edit-icon {
-        display: flex;
-      }
     }
-    
+
+    /* FORCE-DESKTOP (used only during screenshot) */
+    body.force-desktop {
+      flex-direction: row !important;
+    }
+
+    body.force-desktop .pokemon-panel {
+      position: static !important;
+      width: 45% !important;
+      height: auto !important;
+      border-left: 3px solid #333 !important;
+      border-top: none !important;
+    }
+
+    body.force-desktop .character-grid {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      overflow: auto !important;
+      height: calc(100% - 40px) !important;
+    }
   </style>
 </head>
 
 <body>
 
-  <div class="top-nav" style="
-      position: fixed; 
-      top:0; left:0; right:0; 
-      background:#111; 
-      border-bottom:2px solid #222; 
-      padding:12px 20px; 
-      display:flex; 
-      gap:20px; 
-      z-index:999;">
-    <a href="index.html"
-      style="color:white;font-weight:bold;background:#333;padding:6px 12px;border-radius:6px;text-decoration:none;">Tier
-      List</a>
-    <a href="teamBuilder.html"
-      style="color:white;font-weight:bold;background:#333;padding:6px 12px;border-radius:6px;text-decoration:none;">Team
-      Builder</a>
+  <!-- TOP NAV -->
+  <div class="top-nav">
+    <a href="index.html">Tier List</a>
+    <a href="teamBuilder.html">Team Builder</a>
   </div>
 
-  <div class="main-layout" style="padding-top:60px;">
+  <!-- LAYOUT -->
+  <div class="main-layout">
 
-    <!-- LEFT SIDE -->
+    <!-- LEFT PANEL -->
     <div class="left-panel">
 
       <div class="button-row">
@@ -303,6 +298,7 @@
         <div class="slot" data-slot="ban1"></div>
         <div class="slot" data-slot="ban2"></div>
       </div>
+
       <div class="slot-row">
         <div class="slot" data-slot="ban3"></div>
         <div class="slot" data-slot="ban4"></div>
@@ -315,9 +311,11 @@
         <div class="slot" data-slot="team0"></div>
         <div class="slot" data-slot="team1"></div>
       </div>
+
       <div class="slot-row">
         <div class="slot" data-slot="team2"></div>
       </div>
+
       <div class="slot-row">
         <div class="slot" data-slot="team3"></div>
         <div class="slot" data-slot="team4"></div>
@@ -325,7 +323,7 @@
 
     </div>
 
-    <!-- RIGHT SIDE: Pokémon Grid -->
+    <!-- RIGHT PANEL -->
     <div class="pokemon-panel">
       <div class="section-title">Pokémon</div>
       <div class="character-grid" id="character-grid"></div>
@@ -334,7 +332,9 @@
   </div>
 
   <script>
-    /* --- Pokémon List --- */
+    /* -----------------------------------------------
+       POKÉMON LISTS
+    -------------------------------------------------*/
     const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
       'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir',
       'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
@@ -353,14 +353,121 @@
     const speedsters = ['Galarian-Rapidash', 'Scyther', 'Darkrai', 'Meowscarada', 'Leafeon',
       'Zoroark', 'Dodrio', 'Zeraora', 'Talonflame', 'Absol', 'Gengar'];
 
-    const allPokemon = [...attackers, ...allrounders, ...defenders, ...supporters, ...speedsters];
+    const allPokemon = [
+      ...attackers, ...allrounders, ...defenders, ...supporters, ...speedsters
+    ];
 
     const grid = document.getElementById("character-grid");
+    const slots = document.querySelectorAll(".slot");
 
-    /* --- Build Pokémon grid --- */
-    allPokemon.forEach(name => {
+    /* -----------------------------------------------
+       BUILD POKÉMON GRID
+    -------------------------------------------------*/
+    function buildGrid() {
+      grid.innerHTML = "";
+
+      allPokemon.forEach(name => {
+        const lower = name.toLowerCase();
+        const div = document.createElement("div");
+
+        let roleClass = "";
+        if (attackers.includes(name)) roleClass = "attackers";
+        if (allrounders.includes(name)) roleClass = "allrounders";
+        if (defenders.includes(name)) roleClass = "defenders";
+        if (supporters.includes(name)) roleClass = "supporters";
+        if (speedsters.includes(name)) roleClass = "speedsters";
+
+        div.className = `pokemon-icon ${roleClass}`;
+        div.dataset.name = name;
+
+        div.innerHTML = `<img src="./pokemon/unite_${lower}.png" alt="${name}">`;
+
+        // desktop drag
+        div.draggable = true;
+        div.addEventListener("dragstart", () => div.classList.add("dragging"));
+        div.addEventListener("dragend", () => div.classList.remove("dragging"));
+
+        // touch selection
+        div.addEventListener("click", () => handleTouchSelect(div));
+
+        grid.appendChild(div);
+      });
+    }
+
+    buildGrid();
+
+    /* -----------------------------------------------
+       TOUCH SELECTION LOGIC
+    -------------------------------------------------*/
+    let selectedPokemon = null;
+
+    function handleTouchSelect(icon) {
+      if (selectedPokemon === icon) {
+        icon.classList.remove("selected-touch");
+        selectedPokemon = null;
+        return;
+      }
+
+      if (selectedPokemon) {
+        selectedPokemon.classList.remove("selected-touch");
+      }
+
+      selectedPokemon = icon;
+      icon.classList.add("selected-touch");
+    }
+
+    /* deselect when tapping outside */
+    document.body.addEventListener("click", (e) => {
+      if (!e.target.closest(".pokemon-icon") &&
+        !e.target.closest(".slot")) {
+        if (selectedPokemon) {
+          selectedPokemon.classList.remove("selected-touch");
+          selectedPokemon = null;
+        }
+      }
+    });
+
+    /* -----------------------------------------------
+       SLOT CLICK LOGIC (TAP TO PLACE / SWAP)
+    -------------------------------------------------*/
+    slots.forEach(slot => {
+      slot.addEventListener("click", () => {
+        if (!selectedPokemon) return;
+
+        placeOrSwap(slot, selectedPokemon.dataset.name);
+        selectedPokemon.classList.remove("selected-touch");
+        selectedPokemon = null;
+      });
+    });
+
+    /* -----------------------------------------------
+       PLACE or SWAP LOGIC
+    -------------------------------------------------*/
+    function placeOrSwap(slot, pokeName) {
+      const existing = slot.querySelector("img");
+
+      // if slot contains a Pokémon → return it to grid
+      if (existing) {
+        returnPokemonToGrid(existing.alt);
+      }
+
+      // place new image
+      slot.innerHTML = "";
+      const img = document.createElement("img");
+      img.src = `./pokemon/unite_${pokeName.toLowerCase()}.png`;
+      img.alt = pokeName;
+      slot.appendChild(img);
+
+      saveState();
+    }
+
+    /* return old Pokémon to grid */
+    function returnPokemonToGrid(name) {
+      const icon = [...grid.children].find(i => i.dataset.name === name);
+      if (icon) return; // already in grid
+
       const lower = name.toLowerCase();
-      const div = document.createElement("div");
+      const newIcon = document.createElement("div");
 
       let roleClass = "";
       if (attackers.includes(name)) roleClass = "attackers";
@@ -369,47 +476,67 @@
       if (supporters.includes(name)) roleClass = "supporters";
       if (speedsters.includes(name)) roleClass = "speedsters";
 
-      div.className = `pokemon-icon ${roleClass}`;
-      div.draggable = true;
-      div.dataset.name = name;
+      newIcon.className = `pokemon-icon ${roleClass}`;
+      newIcon.dataset.name = name;
+      newIcon.innerHTML = `<img src="./pokemon/unite_${lower}.png" alt="${name}">`;
 
-      div.innerHTML = `<img src="./pokemon/unite_${lower}.png" alt="${name}">`;
+      // drag
+      newIcon.draggable = true;
+      newIcon.addEventListener("dragstart", () => newIcon.classList.add("dragging"));
+      newIcon.addEventListener("dragend", () => newIcon.classList.remove("dragging"));
 
-      div.addEventListener("dragstart", () => div.classList.add("dragging"));
-      div.addEventListener("dragend", () => div.classList.remove("dragging"));
+      // touch
+      newIcon.addEventListener("click", () => handleTouchSelect(newIcon));
 
-      grid.appendChild(div);
-    });
+      grid.appendChild(newIcon);
+    }
 
-    /* --- Drag + Drop --- */
-    const slots = document.querySelectorAll(".slot");
-
+    /* -----------------------------------------------
+       DRAG & DROP
+    -------------------------------------------------*/
     slots.forEach(slot => {
       slot.addEventListener("dragover", e => {
         e.preventDefault();
         slot.classList.add("dragover");
       });
 
-      slot.addEventListener("dragleave", () => slot.classList.remove("dragover"));
+      slot.addEventListener("dragleave", () => {
+        slot.classList.remove("dragover");
+      });
 
       slot.addEventListener("drop", () => {
         slot.classList.remove("dragover");
-
         const dragging = document.querySelector(".dragging");
         if (!dragging) return;
 
-        slot.innerHTML = "";
-        const img = document.createElement("img");
-        img.src = dragging.querySelector("img").src;
-        img.alt = dragging.dataset.name;
-        slot.appendChild(img);
+        const newName = dragging.dataset.name;
+        placeOrSwap(slot, newName);
+      });
+    });
 
+    /* Drag out of slot → back to grid */
+    slots.forEach(slot => {
+      slot.addEventListener("dragstart", e => {
+        const img = slot.querySelector("img");
+        if (!img) return;
+        e.dataTransfer.setData("text/plain", img.alt);
+        slot.classList.add("dragging");
+      });
+
+      slot.addEventListener("dragend", e => {
+        slot.classList.remove("dragging");
+        const transferred = e.dataTransfer.getData("text/plain");
+        if (!transferred) return;
+
+        returnPokemonToGrid(transferred);
+        slot.innerHTML = "";
         saveState();
       });
     });
 
-    /* --- Save / Load / Reset --- */
-
+    /* -----------------------------------------------
+       SAVE / LOAD STATE
+    -------------------------------------------------*/
     function saveState() {
       const data = {
         firstPick: document.getElementById("firstPick").checked,
@@ -428,12 +555,12 @@
     function loadState() {
       const saved = localStorage.getItem("teamBuilderData");
       if (!saved) return;
-      const data = JSON.parse(saved);
 
+      const data = JSON.parse(saved);
       document.getElementById("firstPick").checked = data.firstPick;
 
-      slots.forEach(slot => {
-        const key = slot.dataset.slot;
+      for (let key in data.slots) {
+        const slot = document.querySelector(`.slot[data-slot="${key}"]`);
         const name = data.slots[key];
 
         slot.innerHTML = "";
@@ -443,38 +570,72 @@
           img.alt = name;
           slot.appendChild(img);
         }
-      });
+      }
     }
+    loadState();
 
-    function resetBoard() {
+    /* -----------------------------------------------
+       RESET BOARD
+    -------------------------------------------------*/
+    document.getElementById("reset").addEventListener("click", () => {
       slots.forEach(slot => slot.innerHTML = "");
       document.getElementById("firstPick").checked = false;
       saveState();
-    }
+    });
 
-    document.getElementById("reset").addEventListener("click", resetBoard);
+    /* -----------------------------------------------
+       SCREENSHOT LOGIC (FORCE DESKTOP MODE)
+    -------------------------------------------------*/
+    document.getElementById("save").addEventListener("click", async () => {
+      const tierList = document.querySelector("#tiers-container");
+      const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    /* --- Save Screenshot (FIXED) --- */
+      if (isMobile) {
+        // Temporarily force desktop layout for mobile only
+        document.body.classList.add("force-desktop");
+        await new Promise(r => setTimeout(r, 300)); // Give layout a moment to reflow
+      }
 
-    function saveScreenshot() {
-      const target = document.querySelector(".left-panel");
+      await document.fonts.ready;
+      await Promise.all(
+        Array.from(document.images)
+          .filter((img) => !img.complete)
+          .map(
+            (img) =>
+              new Promise((resolve) => (img.onload = img.onerror = resolve))
+          )
+      );
 
-      html2canvas(target, {
-        backgroundColor: "#111",
-        scale: 2,
-        useCORS: true,
-      }).then(canvas => {
-        const link = document.createElement("a");
-        link.download = "team_builder.png";
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+      document.querySelectorAll("img").forEach((img) => {
+        if (!img.crossOrigin) img.crossOrigin = "anonymous";
       });
-    }
 
-    document.getElementById("save").addEventListener("click", saveScreenshot);
+      try {
+        const canvas = await html2canvas(tierList, {
+          backgroundColor: null,
+          useCORS: true,
+          scale: 2,
+          logging: false,
+          ignoreElements: (element) => element.classList.contains('tier-actions') || element.classList.contains('button'), // omit tier buttons
+        });
 
-    /* Load saved data on start */
-    loadState();
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = "unite-tier-list.png";
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (err) {
+        console.error("Save failed:", err);
+        alert("Saving failed — see console for details.");
+      } finally {
+        // Only remove force-desktop if it was applied
+        if (isMobile) {
+          document.body.classList.remove("force-desktop");
+        }
+      }
+    });
   </script>
 
 </body>
