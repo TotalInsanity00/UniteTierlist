@@ -125,95 +125,26 @@
       pointer-events: none;
     }
 
-    /* Dragging highlight */
-    .slot.dragover {
-      border-color: yellow;
-    }
-
-    /* Main 2-column layout */
-    .main-layout {
-      display: flex;
-      flex-direction: row;
-      height: 100vh;
-      width: 100%;
-    }
-
-    /* LEFT SIDE */
-    .left-panel {
-      width: 55%;
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    /* RIGHT SIDE */
-    .pokemon-panel {
-      width: 10%;
-      border-left: 3px solid #333;
-      padding: 20px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      height: 90vh;
-    }
-
-    /* Pokémon grid same style, but vertical */
-    .character-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      overflow-y: auto;
-      max-height: calc(100vh - 80px);
-    }
-
-    .pokemon-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      position: relative;
-      cursor: grab;
-      flex: 0 0 auto;
-      padding: 3px;
-    }
-
-
-    /* Gradient ring BEHIND the Pokémon */
     .pokemon-icon::before {
       content: "";
       position: absolute;
       inset: -2px;
+      /* slightly bigger to simulate border */
       border-radius: 50%;
-      z-index: 0;
-    }
-
-    /* inner cutoff */
-    .pokemon-icon img {
-      width: 90%;
-      height: 90%;
-      object-fit: contain;
-      border-radius: 50%;
-      position: relative;
-      z-index: 5;
-      margin: 5%;
-    }
-
-    .pokemon-icon::before {
-      z-index: 1;
-      inset: 1px;
-      /* slightly smaller ring */
+      background: linear-gradient(45deg, #ffb7b7, #ff3729);
+      z-index: -1;
     }
 
     .pokemon-icon::after {
-      z-index: 0;
-      inset: 3px;
-      /* tight inner dark ring */
-
+      content: "";
+      position: absolute;
+      inset: 2px;
+      /* inner cutoff */
+      background: #272727;
+      border-radius: 50%;
+      z-index: -1;
     }
 
-    .pokemon-icon {
-      padding: 3px;
-    }
-
-    /* ROLE COLORS (same as tierlist) */
     .attackers::before {
       background: linear-gradient(45deg, #ffb7b7, #ff3729);
     }
@@ -234,18 +165,26 @@
       background: linear-gradient(45deg, #90c2ff, #103cff);
     }
 
-    /* Right side — Pokémon panel full height */
-    .pokemon-panel {
-      width: 45%;
-      border-left: 3px solid #333;
-      padding: 20px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+    .slot.dragover {
+      border-color: yellow;
     }
 
-    /* Pokémon grid fills entire column */
+    .main-layout {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      width: 100%;
+    }
+
+    /* RIGHT SIDE */
+    .pokemon-panel {
+      width: 45%;
+      /* matches left-panel 55% */
+      max-width: none;
+      flex: 1;
+      /* makes it stretch automatically */
+    }
+
     .character-grid {
       flex: 1;
       width: 100%;
@@ -256,158 +195,91 @@
       padding-right: 10px;
     }
 
-    .pokemon-icon {
-      position: relative;
-    }
-
-    .pokemon-icon img {
-      position: relative;
-      z-index: 3;
-      /* <-- force image ABOVE the ring */
-    }
-
-    .pokemon-icon::before,
-    .pokemon-icon::after {
-      z-index: 1;
-      /* <-- keep ring BELOW the image */
-    }
-
-    .left-panel {
-      width: 70%;
-      /* change to whatever you want */
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    .pokemon-panel {
-      width: 33%;
-      /* THIS NOW WORKS */
-      border-left: 3px solid #333;
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Hide scrollbar for Chrome, Safari, Edge */
-    .character-grid::-webkit-scrollbar {
-      display: none;
-    }
-
-    /* Hide scrollbar for Firefox */
-    .character-grid {
-      scrollbar-width: none;
-    }
-
-
-    .top-nav {
-      position: fixed;
-      /* <— was sticky before */
-      top: 0;
-      left: 0;
-      right: 0;
-
-      background: #111;
-      border-bottom: 2px solid #222;
-
-      padding: 12px 20px;
-
-      display: flex;
-      gap: 20px;
-      align-items: center;
-
-      z-index: 999;
-      /* stays above the content */
-    }
-
-    .top-nav a {
-      color: white;
-      font-weight: bold;
-      text-decoration: none;
-      font-size: 16px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      background: #333;
-      white-space: nowrap;
-      /* stops them from stretching */
-    }
-
-    .top-nav a:hover {
-      background: #444;
-    }
-
-    .main-layout {
-      padding-top: 60px;
-      /* space for the top nav */
-    }
-
-    @media (max-width: 900px) {
-
-      .main-layout {
+    /* MOBILE SCROLL FIX */
+     @media (max-width: 768px) {
+      body {
         flex-direction: column;
-        padding-top: 70px;
+        height: auto;
       }
 
-      .left-panel {
-        width: 100%;
-        padding-bottom: 160px;
-        /* makes space for bottom bar */
+      .tier-list {
+        flex: none;
+        padding-bottom: 150px;
       }
 
-      .pokemon-panel {
+      .side-panel {
         position: fixed;
         bottom: 0;
         left: 0;
-        right: 0;
-
-        width: 100% !important;
+        width: 100%;
         height: 140px;
-
-        background: #111;
+        background-color: #1a1a1a;
         border-top: 3px solid #333;
-        border-left: none !important;
-
+        border-left: none;
         display: flex;
         flex-direction: column;
-        z-index: 999;
-        padding: 5px 0;
+        justify-content: flex-start;
+        align-items: center;
+        z-index: 50;
+        padding: 5px;
+      }
+
+      .character-preview {
+        display: none;
       }
 
       .character-grid {
-        flex-wrap: nowrap !important;
-        flex-direction: row !important;
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: none;
         overflow-x: auto;
-        overflow-y: hidden !important;
-        gap: 10px;
+        overflow-y: hidden;
+        white-space: nowrap;
         width: 100%;
-        height: 100%;
-        padding: 10px;
+        padding: 5px;
+        gap: 8px;
+        justify-items: start;
+        scrollbar-width: none;
+      }
+
+      .character-grid::-webkit-scrollbar {
+        display: none;
       }
 
       .pokemon-icon {
-        width: 70px !important;
-        height: 70px !important;
         flex: 0 0 auto;
+        width: 55px;
+        height: 55px;
       }
 
-      .section-title {
-        display: none;
+      .edit-icon {
+        display: flex;
       }
     }
+    
   </style>
 </head>
 
 <body>
 
-  <div class="top-nav">
-    <a href="index.html">Tier List</a>
-    <a href="teamBuilder.html">Team Builder</a>
+  <div class="top-nav" style="
+      position: fixed; 
+      top:0; left:0; right:0; 
+      background:#111; 
+      border-bottom:2px solid #222; 
+      padding:12px 20px; 
+      display:flex; 
+      gap:20px; 
+      z-index:999;">
+    <a href="index.html"
+      style="color:white;font-weight:bold;background:#333;padding:6px 12px;border-radius:6px;text-decoration:none;">Tier
+      List</a>
+    <a href="teamBuilder.html"
+      style="color:white;font-weight:bold;background:#333;padding:6px 12px;border-radius:6px;text-decoration:none;">Team
+      Builder</a>
   </div>
 
-
-  <div class="main-layout">
-
-
+  <div class="main-layout" style="padding-top:60px;">
 
     <!-- LEFT SIDE -->
     <div class="left-panel">
@@ -462,7 +334,7 @@
   </div>
 
   <script>
-    /* --- Pokémon List (same as your main page) --- */
+    /* --- Pokémon List --- */
     const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
       'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir',
       'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
@@ -489,7 +361,7 @@
     allPokemon.forEach(name => {
       const lower = name.toLowerCase();
       const div = document.createElement("div");
-      // assign role class
+
       let roleClass = "";
       if (attackers.includes(name)) roleClass = "attackers";
       if (allrounders.includes(name)) roleClass = "allrounders";
@@ -498,24 +370,18 @@
       if (speedsters.includes(name)) roleClass = "speedsters";
 
       div.className = `pokemon-icon ${roleClass}`;
-
       div.draggable = true;
       div.dataset.name = name;
 
       div.innerHTML = `<img src="./pokemon/unite_${lower}.png" alt="${name}">`;
 
-      div.addEventListener("dragstart", () => {
-        div.classList.add("dragging");
-      });
-
-      div.addEventListener("dragend", () => {
-        div.classList.remove("dragging");
-      });
+      div.addEventListener("dragstart", () => div.classList.add("dragging"));
+      div.addEventListener("dragend", () => div.classList.remove("dragging"));
 
       grid.appendChild(div);
     });
 
-    /* --- Drag + Drop for Slots --- */
+    /* --- Drag + Drop --- */
     const slots = document.querySelectorAll(".slot");
 
     slots.forEach(slot => {
@@ -524,9 +390,7 @@
         slot.classList.add("dragover");
       });
 
-      slot.addEventListener("dragleave", () => {
-        slot.classList.remove("dragover");
-      });
+      slot.addEventListener("dragleave", () => slot.classList.remove("dragover"));
 
       slot.addEventListener("drop", () => {
         slot.classList.remove("dragover");
@@ -534,12 +398,10 @@
         const dragging = document.querySelector(".dragging");
         if (!dragging) return;
 
-        // place image into slot
         slot.innerHTML = "";
         const img = document.createElement("img");
         img.src = dragging.querySelector("img").src;
         img.alt = dragging.dataset.name;
-
         slot.appendChild(img);
 
         saveState();
@@ -585,36 +447,34 @@
     }
 
     function resetBoard() {
-      slots.forEach(slot => {
-        slot.innerHTML = "";
-      });
+      slots.forEach(slot => slot.innerHTML = "");
       document.getElementById("firstPick").checked = false;
       saveState();
     }
 
-    document.getElementById("save").addEventListener("click", saveScreenshot);
+    document.getElementById("reset").addEventListener("click", resetBoard);
 
-    // html2canvas screenshot save
+    /* --- Save Screenshot (FIXED) --- */
+
     function saveScreenshot() {
-      const target = document.body; // capture only left side
+      const target = document.querySelector(".left-panel");
 
       html2canvas(target, {
-        backgroundColor: "#111",  // ensures dark background
-        scale: 2                  // higher quality
+        backgroundColor: "#111",
+        scale: 2,
+        useCORS: true,
       }).then(canvas => {
-
-        // Convert canvas to downloadable png
         const link = document.createElement("a");
         link.download = "team_builder.png";
         link.href = canvas.toDataURL("image/png");
         link.click();
       });
     }
-    document.getElementById("reset").addEventListener("click", resetBoard);
 
-    /* Load data on start */
+    document.getElementById("save").addEventListener("click", saveScreenshot);
+
+    /* Load saved data on start */
     loadState();
-
   </script>
 
 </body>
