@@ -587,49 +587,45 @@
        SCREENSHOT LOGIC (FORCE DESKTOP MODE)
     -------------------------------------------------*/
     document.getElementById("save").addEventListener("click", async () => {
-      const tierList = document.querySelector("#tiers-container");
+      const target = document.querySelector(".left-panel");  // <-- FIXED
       const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
       if (isMobile) {
-        // Temporarily force desktop layout for mobile only
         document.body.classList.add("force-desktop");
-        await new Promise(r => setTimeout(r, 300)); // Give layout a moment to reflow
+        await new Promise(r => setTimeout(r, 300)); // reflow
       }
 
       await document.fonts.ready;
       await Promise.all(
         Array.from(document.images)
-          .filter((img) => !img.complete)
-          .map(
-            (img) =>
-              new Promise((resolve) => (img.onload = img.onerror = resolve))
-          )
+          .filter(img => !img.complete)
+          .map(img => new Promise(resolve => (img.onload = img.onerror = resolve)))
       );
 
-      document.querySelectorAll("img").forEach((img) => {
-        if (!img.crossOrigin) img.crossOrigin = "anonymous";
-      });
-
       try {
-        const canvas = await html2canvas(tierList, {
-          backgroundColor: null,
+        const canvas = await html2canvas(target, {
+          backgroundColor: "#111",
           useCORS: true,
           scale: 2,
-          logging: false
+          logging: false,
+          ignoreElements: (el) =>
+            el.id === "save" ||
+            el.id === "reset"
         });
 
         const dataUrl = canvas.toDataURL("image/png");
         const link = document.createElement("a");
-        link.download = "unite-tier-list.png";
+        link.download = "team_builder.png";
         link.href = dataUrl;
         document.body.appendChild(link);
         link.click();
         link.remove();
+
       } catch (err) {
         console.error("Save failed:", err);
         alert("Saving failed — see console for details.");
+
       } finally {
-        // Only remove force-desktop if it was applied
         if (isMobile) {
           document.body.classList.remove("force-desktop");
         }
