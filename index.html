@@ -840,7 +840,11 @@
       // Collect tiers
       document.querySelectorAll('#tiers-container .tier').forEach(tierDiv => {
         const labelDiv = tierDiv.querySelector('.tier-label');
-        const tierName = labelDiv.textContent.trim();
+        const tierName = Array.from(labelDiv.childNodes)
+          .filter(n => n.nodeType === Node.TEXT_NODE)
+          .map(n => n.textContent.trim())
+          .join(" ")
+          .trim();
         const tierColor = labelDiv.style.backgroundColor;
 
         const pokemon = [];
@@ -1304,15 +1308,7 @@
 
         // ===== MOBILE =====
         if (isMobile) {
-          // tap to rename
-          label.addEventListener('click', e => {
-            e.stopPropagation();
-            label.contentEditable = "true";
-            label.focus();
-            label.dataset.editing = "true";
-          });
 
-          // Add a big, easy-to-tap “Rename” button
           const renameBtn = document.createElement("button");
           renameBtn.textContent = "Rename";
           renameBtn.style.marginLeft = "8px";
@@ -1323,6 +1319,11 @@
           renameBtn.style.color = "white";
           renameBtn.style.border = "1px solid #666";
           renameBtn.style.cursor = "pointer";
+
+          // Make the button UNDELETABLE
+          renameBtn.contentEditable = "false";
+          renameBtn.style.userSelect = "none";
+          renameBtn.style.pointerEvents = "auto";
 
           renameBtn.addEventListener("click", e => {
             e.stopPropagation();
