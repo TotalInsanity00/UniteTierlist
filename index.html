@@ -933,21 +933,100 @@
       }
     });
 
+    function rebuildDefaultTiers() {
+      const container = document.getElementById('tiers-container');
+      container.innerHTML = `
+    <div class="tier">
+      <div class="tier-label" style="background-color:#ff5722;" data-editable="true">
+        S TIER
+        <input type="color" class="color-picker" value="#ff5722">
+      </div>
+      <div class="tier-content"></div>
+      <div class="tier-actions">
+        <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+        <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        <button class="add-tier">＋</button>
+        <button class="remove-tier">−</button>
+      </div>
+    </div>
+
+    <div class="tier">
+      <div class="tier-label" style="background-color:#ffca28;" data-editable="true">
+        A TIER
+        <input type="color" class="color-picker" value="#ffca28">
+      </div>
+      <div class="tier-content"></div>
+      <div class="tier-actions">
+        <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+        <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        <button class="add-tier">＋</button>
+        <button class="remove-tier">−</button>
+      </div>
+    </div>
+
+    <div class="tier">
+      <div class="tier-label" style="background-color:#8bc34a;" data-editable="true">
+        B TIER
+        <input type="color" class="color-picker" value="#8bc34a">
+      </div>
+      <div class="tier-content"></div>
+      <div class="tier-actions">
+        <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+        <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        <button class="add-tier">＋</button>
+        <button class="remove-tier">−</button>
+      </div>
+    </div>
+
+    <div class="tier">
+      <div class="tier-label" style="background-color:#132781;" data-editable="true">
+        C TIER
+        <input type="color" class="color-picker" value="#132781">
+      </div>
+      <div class="tier-content"></div>
+      <div class="tier-actions">
+        <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+        <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        <button class="add-tier">＋</button>
+        <button class="remove-tier">−</button>
+      </div>
+    </div>
+
+    <div class="tier">
+      <div class="tier-label" style="background-color:#610f75;" data-editable="true">
+        D TIER
+        <input type="color" class="color-picker" value="#610f75">
+      </div>
+      <div class="tier-content"></div>
+      <div class="tier-actions">
+        <button class="move-up"><i class="fa-solid fa-chevron-up"></i></button>
+        <button class="move-down"><i class="fa-solid fa-chevron-down"></i></button>
+        <button class="add-tier">＋</button>
+        <button class="remove-tier">−</button>
+      </div>
+    </div>
+  `;
+
+      setupColorPickers();
+      setupDragAndDrop();
+      setupIconReordering();
+      setupTierActions();
+      setupSafeTierEditing();
+    }
 
     // --- Reset Tier List ---
     document.getElementById('reset').addEventListener('click', () => {
       const grid = document.getElementById('character-grid');
-      const tiers = document.querySelectorAll('.tier-content');
 
-      // Move all Pokémon back to the grid
-      tiers.forEach(tier => {
-        const icons = [...tier.querySelectorAll('.pokemon-icon')];
-        icons.forEach(icon => grid.appendChild(icon));
-        saveTierListToLocalStorage();
+      // Clear saved data
+      localStorage.removeItem('tierListData');
 
+      // Move all Pokémon back to grid
+      document.querySelectorAll('.pokemon-icon').forEach(icon => {
+        grid.appendChild(icon);
       });
 
-      // Optional: sort grid back to original order
+      // Restore original grid order
       const originalOrder = [
         ...attackers,
         ...allrounders,
@@ -956,15 +1035,17 @@
         ...speedsters
       ];
 
-      const gridIcons = [...grid.querySelectorAll('.pokemon-icon')];
-      gridIcons.sort((a, b) => {
-        const indexA = originalOrder.indexOf(a.dataset.name);
-        const indexB = originalOrder.indexOf(b.dataset.name);
-        return indexA - indexB;
-      });
+      [...grid.children]
+        .sort((a, b) =>
+          originalOrder.indexOf(a.dataset.name) -
+          originalOrder.indexOf(b.dataset.name)
+        )
+        .forEach(icon => grid.appendChild(icon));
 
-      gridIcons.forEach(icon => grid.appendChild(icon));
+      // Rebuild default tiers (names + colors reset)
+      rebuildDefaultTiers();
     });
+
 
     function setupColorPickers() {
       document.querySelectorAll('.tier-label').forEach(label => {
