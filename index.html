@@ -649,6 +649,29 @@
 
   <script>
 
+    // ===== AUTOSAVE SYSTEM (30s throttle) =====
+    let autosaveDirty = false;
+    let autosaveInterval = null;
+
+    function markTierListDirty() {
+      autosaveDirty = true;
+    }
+
+    function startAutosave() {
+      if (autosaveInterval) return;
+
+      autosaveInterval = setInterval(() => {
+        if (!autosaveDirty) return;
+        autosaveDirty = false;
+        saveTierListToLocalStorage();
+        console.log("Autosaved tier list");
+      }, 20000); // 20 seconds
+    }
+
+    // start autosave once
+    startAutosave();
+
+
     const attackers = ['Latios', 'Alolan-Raichu', 'Armarouge', 'Miraidon', 'Mewtwoy', 'Inteleon', 'Chandelure',
       'Dragapult', 'Mew', 'Glaceon', 'Delphox', 'Espeon', 'Duraludon', 'Decidueye', 'Sylveon', 'Gardevoir', 'Pikachu', 'Greninja', 'Venusaur', 'Alolan-Ninetales', 'Cramorant', 'Cinderace'];
     const allrounders = ['Empoleon', 'Pawmot', 'Suicune', 'Tinkaton', 'Ceruledge', 'Falinks', 'Gyarados', 'Metagross', 'Mimikyu',
@@ -692,7 +715,8 @@
           else tierContent.insertBefore(dragging, after);
           updatePreviewImage(dragging.dataset.name);
           setupIconReordering();
-          saveTierListToLocalStorage();
+          markTierListDirty();
+
 
         });
 
@@ -706,7 +730,8 @@
           selectedPokemon.classList.remove('selected-touch');
           selectedPokemon = null;
           setupIconReordering();
-          saveTierListToLocalStorage();
+          markTierListDirty();
+
 
         });
 
@@ -722,7 +747,8 @@
             selectedPokemon.classList.remove('selected-touch');
             selectedPokemon = null;
             setupIconReordering();
-            saveTierListToLocalStorage();
+            markTierListDirty();
+
 
           }
         });
@@ -745,7 +771,6 @@
         const after = getDragAfterElementGrid(grid, e.clientX, e.clientY);
         if (after == null) grid.appendChild(dragging);
         else grid.insertBefore(dragging, after);
-        saveTierListToLocalStorage();
       });
     }
 
@@ -1188,7 +1213,8 @@
             // cleanup
             firstSelected.classList.remove('swap-selected');
             firstSelected = null;
-            saveTierListToLocalStorage();
+            markTierListDirty();
+
 
           }
         });
@@ -1199,7 +1225,8 @@
         if (firstSelected && !e.target.classList.contains('pokemon-icon')) {
           firstSelected.classList.remove('swap-selected');
           firstSelected = null;
-          saveTierListToLocalStorage();
+          markTierListDirty();
+
 
         }
       });
